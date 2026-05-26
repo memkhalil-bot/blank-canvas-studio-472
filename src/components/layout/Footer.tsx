@@ -11,7 +11,7 @@ export function Footer() {
     <footer className="bg-black text-white border-t border-white/5">
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
         <div className="grid md:grid-cols-12 gap-12 mb-16">
-          <div className="md:col-span-6">
+          <div className="md:col-span-5">
             <p className="font-serif-display text-3xl md:text-5xl leading-[1.1] tracking-tight max-w-xl">
               Most founders meet me{' '}
               <span className="italic text-ember">six months</span> too late.
@@ -24,7 +24,7 @@ export function Footer() {
             </Link>
           </div>
 
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
             <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
               Navigate
             </p>
@@ -35,7 +35,7 @@ export function Footer() {
             </ul>
           </div>
 
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
             <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
               Direct
             </p>
