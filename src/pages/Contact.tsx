@@ -256,10 +256,9 @@ export default function Contact() {
       <section className="border-t border-white/5 py-24 px-6 lg:px-12">
         <div className="max-w-4xl mx-auto text-center">
           <p className="font-serif-display text-2xl md:text-4xl italic text-white/40 leading-snug">
-            "Most founders meet me <span className="text-ember">six months</span>{' '}
-            too late.
+            "Save it <span className="text-ember">before</span> it becomes
             <br />
-            Don't be one of them."
+            another case study."
           </p>
         </div>
       </section>
