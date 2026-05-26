@@ -52,13 +52,14 @@ export default function Contact() {
       />
 
       {/* HERO */}
-      <section className="relative pt-32 md:pt-48 pb-16 px-6 lg:px-12 overflow-hidden">
+      <section className="relative pt-32 md:pt-40 pb-20 px-6 lg:px-12 overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(18_92%_55%/0.12),transparent_65%)]" />
-        <div className="relative max-w-5xl mx-auto">
+        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className="order-2 lg:order-1"
           >
             <div className="flex items-center gap-3 mb-8">
               <span className="h-px w-12 bg-ember" />
@@ -71,22 +72,43 @@ export default function Contact() {
               <br />
               <span className="italic text-ember">Risk Session.</span>
             </h1>
-            <p className="mt-10 text-lg md:text-xl text-white/55 max-w-2xl leading-relaxed font-light">
+            <p className="mt-10 text-lg md:text-xl text-white/55 max-w-xl leading-relaxed font-light">
               No fake optimism. No startup clichés. Just an honest conversation
               about your company, your decisions, and the risks already moving
               underneath them.
             </p>
+            <p
+              dir="rtl"
+              className="mt-6 font-arabic text-base md:text-lg text-white/40 leading-relaxed max-w-xl"
+            >
+              خطوة واحدة قد تغير مسار شركتك.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+            className="order-1 lg:order-2 relative"
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(18_92%_55%/0.18),transparent_70%)] blur-2xl" />
+            <img
+              src={bookCallPhone}
+              alt="Orange phone receiver — book a risk session"
+              className="relative w-full h-auto max-w-lg mx-auto select-none pointer-events-none"
+              draggable={false}
+            />
           </motion.div>
         </div>
       </section>
 
       {/* WHAT IT IS */}
-      <section className="px-6 lg:px-12 pb-24 border-b border-white/5">
+      <section className="px-6 lg:px-12 py-20 border-b border-white/5">
         <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-px bg-white/5 border border-white/5">
           {[
-            { k: '60 min', v: 'One conversation. On the record with yourself.' },
             { k: 'Private', v: 'Nothing leaves the room. No notes shared.' },
             { k: 'Direct', v: 'I will tell you what your team will not.' },
+            { k: 'Honest', v: 'No clichés. No theater. Just the truth on the table.' },
           ].map((b) => (
             <div key={b.k} className="bg-black p-8">
               <div className="font-serif-display text-3xl text-ember mb-3">
@@ -99,6 +121,7 @@ export default function Contact() {
           ))}
         </div>
       </section>
+
 
       {/* FORM */}
       <section className="px-6 lg:px-12 py-24 md:py-32">
