@@ -1,71 +1,65 @@
-import { Instagram, Linkedin } from 'lucide-react';
-import { photographerInfo } from '@/data/photographer';
-import { Separator } from '@/components/ui/separator';
+import { Link } from 'react-router-dom';
 
 /**
- * Minimal footer component with social links and copyright
+ * Footer — Khabir Al Fashal
+ * Minimal dark closing strip.
  */
 export function Footer() {
-  const currentYear = new Date().getFullYear();
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-          {/* Copyright */}
-          <p className="text-sm text-muted-foreground font-light tracking-wide">
-            © {currentYear} {photographerInfo.name}. All rights reserved.
-          </p>
-
-          {/* Social Links */}
-          <div className="flex items-center gap-6">
-            {photographerInfo.socialLinks.instagram && (
-              <a
-                href={photographerInfo.socialLinks.instagram}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Instagram"
-              >
-                <Instagram className="size-5" />
-              </a>
-            )}
-            {photographerInfo.socialLinks.linkedin && (
-              <a
-                href={photographerInfo.socialLinks.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="size-5" />
-              </a>
-            )}
-            {photographerInfo.socialLinks.behance && (
-              <a
-                href={photographerInfo.socialLinks.behance}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-muted-foreground hover:text-foreground transition-colors"
-                aria-label="Behance"
-              >
-                <svg
-                  className="size-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 8h6a3 3 0 0 1 0 6H3V8z" />
-                  <path d="M3 14h7a3 3 0 0 1 0 6H3v-6z" />
-                  <path d="M14 7h7" />
-                  <path d="M17 8a3 3 0 1 1 0 6 3 3 0 0 1 0-6z" />
-                </svg>
-              </a>
-            )}
+    <footer className="bg-black text-white border-t border-white/5">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-20">
+        <div className="grid md:grid-cols-12 gap-12 mb-16">
+          <div className="md:col-span-6">
+            <p className="font-serif-display text-3xl md:text-5xl leading-[1.1] tracking-tight max-w-xl">
+              Most founders meet me{' '}
+              <span className="italic text-ember">six months</span> too late.
+            </p>
+            <Link
+              to="/contact"
+              className="inline-block mt-8 text-[11px] tracking-[0.3em] uppercase text-white/60 hover:text-ember transition-colors border-b border-white/20 hover:border-ember pb-1"
+            >
+              Don&apos;t be one of them →
+            </Link>
           </div>
+
+          <div className="md:col-span-3">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
+              Navigate
+            </p>
+            <ul className="space-y-3 text-sm text-white/70 font-light">
+              <li><Link to="/" className="hover:text-ember transition-colors">Home</Link></li>
+              <li><Link to="/about" className="hover:text-ember transition-colors">Case File</Link></li>
+              <li><Link to="/contact" className="hover:text-ember transition-colors">Book a Session</Link></li>
+            </ul>
+          </div>
+
+          <div className="md:col-span-3">
+            <p className="text-[10px] tracking-[0.3em] uppercase text-white/30 mb-5">
+              Direct
+            </p>
+            <ul className="space-y-3 text-sm text-white/70 font-light">
+              <li>
+                <a href="mailto:case@khabiralfashal.com" className="hover:text-ember transition-colors">
+                  case@khabiralfashal.com
+                </a>
+              </li>
+              <li>Riyadh · Remote</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pt-10 border-t border-white/5">
+          <div className="flex items-center gap-3">
+            <span className="h-px w-8 bg-ember" />
+            <span className="text-[10px] tracking-[0.35em] uppercase text-white/50">
+              خبير الفشل · Khabir Al Fashal
+            </span>
+          </div>
+          <p className="text-[10px] tracking-[0.3em] uppercase text-white/30">
+            © {year} · Case Files · All Rights Reserved
+          </p>
         </div>
       </div>
     </footer>
