@@ -373,7 +373,7 @@ export function ValleyQuizArabic() {
                 <p className="text-xs tracking-[0.25em] uppercase text-ember font-sans-ui mb-4">
                   السؤال {String(idx + 1).padStart(2, '0')}
                 </p>
-                <h3 className="font-serif-display text-2xl md:text-3xl leading-snug mb-8">
+                <h3 className="font-arabic text-2xl md:text-3xl leading-snug mb-8">
                   {QUESTIONS[idx]}
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
@@ -420,7 +420,7 @@ export function ValleyQuizArabic() {
                   {score}
                   <span className="text-3xl text-white/30">/100</span>
                 </div>
-                <h3 className="mt-6 font-serif-display text-3xl md:text-4xl">
+                <h3 className="mt-6 font-arabic text-3xl md:text-4xl">
                   {verdict.title}
                 </h3>
                 <p className={`mt-2 text-sm tracking-[0.2em] uppercase font-sans-ui ${verdict.color}`}>
@@ -452,7 +452,7 @@ export function ValleyQuizArabic() {
                 <p className="text-xs tracking-[0.3em] uppercase text-ember font-sans-ui mb-2 text-center">
                   الترقية المدفوعة
                 </p>
-                <h3 className="font-serif-display text-2xl md:text-3xl text-center mb-8">
+                <h3 className="font-arabic text-2xl md:text-3xl text-center mb-8">
                   عايز تحليل أعمق؟
                 </h3>
                 <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -464,7 +464,7 @@ export function ValleyQuizArabic() {
                       <span className="self-start text-[10px] tracking-[0.2em] uppercase text-ember border border-ember/30 px-2 py-1 mb-4 font-sans-ui">
                         {p.tag}
                       </span>
-                      <h4 className="font-serif-display text-xl mb-2 leading-snug">
+                      <h4 className="font-arabic text-xl mb-2 leading-snug">
                         {p.title}
                       </h4>
                       <div className="font-serif-display text-2xl text-ember mb-3">
