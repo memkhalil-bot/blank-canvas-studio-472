@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { ValleyQuizArabic } from '@/components/valley/ValleyQuizArabic';
 
 /**
  * Valley of Death — a brutal self-diagnostic test for founders.
@@ -333,6 +334,9 @@ export default function ValleyOfDeath() {
           </AnimatePresence>
         </div>
       </section>
+
+      {/* Arabic interactive quiz */}
+      <ValleyQuizArabic />
     </div>
   );
 }
