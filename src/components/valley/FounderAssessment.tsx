@@ -1007,39 +1007,55 @@ function AssessField({
 }
 
 function ResultCTA({
-  to, icon, title, desc, primary, isRTL,
-}: { to: string; icon: React.ReactNode; title: string; desc: string; primary?: boolean; isRTL?: boolean }) {
+  to, icon, title, desc, primary, urgent, isRTL, continueLabel,
+}: { to: string; icon: React.ReactNode; title: string; desc: string; primary?: boolean; urgent?: boolean; isRTL?: boolean; continueLabel?: string }) {
   return (
     <Link
       to={to}
-      className={`group block p-6 border transition-all duration-500 ${
-        primary
+      className={cn(
+        'group relative block p-6 border transition-all duration-500 overflow-hidden',
+        urgent
+          ? 'border-red-500/60 bg-red-950/30 hover:bg-red-500 hover:text-black'
+          : primary
           ? 'border-ember bg-ember/[0.08] hover:bg-ember hover:text-black'
           : 'border-white/10 hover:border-ember hover:bg-white/[0.03]'
-      }`}
+      )}
     >
-      <div className={`mb-5 ${primary ? 'text-ember group-hover:text-black' : 'text-ember'}`}>
+      {urgent && (
+        <span
+          aria-hidden
+          className="absolute inset-0 pointer-events-none animate-pulse"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 50%, hsl(0 84% 45% / 0.18), transparent 70%)',
+          }}
+        />
+      )}
+      <div className={cn(
+        'relative mb-5',
+        urgent ? 'text-red-400 group-hover:text-black' : primary ? 'text-ember group-hover:text-black' : 'text-ember'
+      )}>
         {icon}
       </div>
       <h4 className={cn(
-        'text-xl mb-3 leading-snug',
+        'relative text-xl mb-3 leading-snug',
         isRTL ? 'font-arabic font-bold text-right leading-[1.5]' : 'font-serif-display'
       )}>
         {title}
       </h4>
       <p className={cn(
-        'text-sm leading-relaxed',
+        'relative text-sm leading-relaxed',
         isRTL ? 'font-arabic text-right leading-[2]' : '',
-        primary ? 'text-white/70 group-hover:text-black/70' : 'text-white/50'
+        urgent ? 'text-white/75 group-hover:text-black/75' : primary ? 'text-white/70 group-hover:text-black/70' : 'text-white/50'
       )}>
         {desc}
       </p>
       <div className={cn(
-        'mt-6 inline-flex items-center gap-2 text-[10px] uppercase transition-colors',
+        'relative mt-6 inline-flex items-center gap-2 text-[10px] uppercase transition-colors',
         isRTL ? 'font-arabic tracking-normal text-sm flex-row-reverse' : 'tracking-[0.3em]',
-        primary ? 'text-white group-hover:text-black' : 'text-white/60 group-hover:text-ember'
+        urgent || primary ? 'text-white group-hover:text-black' : 'text-white/60 group-hover:text-ember'
       )}>
-        Continue <ArrowRight className={cn('size-3', isRTL && 'rotate-180')} />
+        {continueLabel ?? 'Continue'} <ArrowRight className={cn('size-3', isRTL && 'rotate-180')} />
       </div>
     </Link>
   );
