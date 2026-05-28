@@ -39,14 +39,50 @@ type Question = {
 
 // QUESTIONS array removed — questions now come from translations (a.questions)
 
+// ── Gate validation helpers ───────────────────────────────────────────────────
+
+const DISPOSABLE_DOMAINS = new Set([
+  'test.com','example.com','mailinator.com','guerrillamail.com','yopmail.com',
+  'tempmail.com','throwaway.email','fakeinbox.com','trashmail.com','spam.la',
+  'sharklasers.com','guerrillamailblock.com','grr.la','10minutemail.com',
+  'temp-mail.org','dispostable.com','maildrop.cc','mailnull.com',
+  'trashmail.at','trashmail.io','getairmail.com','spamgourmet.com',
+]);
+
+const FAKE_NAME_SET = new Set([
+  'test','asdf','qwer','qwerty','user','name','anon','none','null','undefined',
+  'fake','admin','hello','aaa','bbb','ccc','xxx','yyy','zzz','abc','xyz',
+  'مستخدم','اسم','اختبار','مجهول',
+]);
+
+const KEYBOARD_SEQS = ['qwer','asdf','zxcv','1234','5678','9012','qwerty','asdfgh','zxcvbn'];
+
+function _hasExcessiveRepeat(s: string): boolean {
+  // 4+ identical chars in a row: "aaaa", "1111"
+  return /(.)\1{3,}/.test(s.replace(/\s+/g, '').toLowerCase());
+}
+
+function _isKeyboardSeq(s: string): boolean {
+  const lower = s.toLowerCase().replace(/\s+/g, '');
+  return KEYBOARD_SEQS.some(seq => lower.includes(seq));
+}
+
+function _hasEnoughDistinctChars(s: string, min: number): boolean {
+  return new Set(s.replace(/\s+/g, '').toLowerCase()).size >= min;
+}
+
+function _hasLetter(s: string): boolean {
+  return /[a-zA-Z؀-ۿ]/.test(s);
+}
+
 // Lead capture (start)
 const leadSchema = z.object({
-  name: z.string().trim().min(2, 'Tell us your name').max(80),
-  email: z.string().trim().email('Enter a valid email').max(255),
+  name:    z.string().trim().min(2).max(80),
+  email:   z.string().trim().email().max(255),
   company: z.string().trim().max(120).optional(),
-  stage: z.string().optional(),
-  sector: z.string().optional(),
-  country: z.string().optional(),
+  stage:   z.string().optional(),
+  sector:  z.string().trim().min(1).max(120),
+  country: z.string().trim().min(1).max(80),
 });
 type Lead = z.infer<typeof leadSchema>;
 
@@ -190,15 +226,81 @@ export function FounderAssessment() {
   };
 
   const submitLead = () => {
-    const parsed = leadSchema.safeParse(leadForm);
-    if (!parsed.success) {
-      const errs: Record<string, string> = {};
-      parsed.error.issues.forEach((i) => (errs[String(i.path[0])] = i.message));
+    const errs: Record<string, string> = {};
+    const ar = lang === 'ar';
+    const f  = leadForm;
+
+    // ── Name ─────────────────────────────────────────────────────────────────
+    const name = f.name.trim();
+    if (name.length < 2) {
+      errs.name = ar ? 'أدخل اسمك الحقيقي' : 'Enter your real name';
+    } else if (!_hasLetter(name)) {
+      errs.name = ar ? 'يجب أن يحتوي الاسم على أحرف' : 'Name must contain letters';
+    } else if (_hasExcessiveRepeat(name)) {
+      errs.name = ar ? 'الاسم يبدو غير حقيقي' : 'Name does not look real';
+    } else if (!_hasEnoughDistinctChars(name, 2)) {
+      errs.name = ar ? 'الاسم يبدو غير حقيقي' : 'Name does not look real';
+    } else if (FAKE_NAME_SET.has(name.toLowerCase())) {
+      errs.name = ar ? 'أدخل اسمك الحقيقي' : 'Enter your real name';
+    } else if (_isKeyboardSeq(name)) {
+      errs.name = ar ? 'أدخل اسمك الحقيقي' : 'Enter your real name';
+    }
+
+    // ── Email ─────────────────────────────────────────────────────────────────
+    const email = f.email.trim();
+    if (!email) {
+      errs.email = ar ? 'البريد الإلكتروني مطلوب' : 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      errs.email = ar ? 'أدخل بريداً إلكترونياً صحيحاً' : 'Enter a valid email address';
+    } else {
+      const atIdx = email.lastIndexOf('@');
+      const local  = email.slice(0, atIdx).toLowerCase();
+      const domain = email.slice(atIdx + 1).toLowerCase();
+      if (DISPOSABLE_DOMAINS.has(domain)) {
+        errs.email = ar ? 'الرجاء استخدام بريد إلكتروني حقيقي' : 'Please use a real email address';
+      } else if (local.length < 3) {
+        errs.email = ar ? 'البريد الإلكتروني يبدو غير صحيح' : 'Email address looks invalid';
+      } else if (_hasExcessiveRepeat(local)) {
+        errs.email = ar ? 'البريد الإلكتروني يبدو غير حقيقي' : 'Email address does not look real';
+      } else if (_isKeyboardSeq(local)) {
+        errs.email = ar ? 'الرجاء استخدام بريد إلكتروني حقيقي' : 'Please use a real email address';
+      }
+    }
+
+    // ── Sector ────────────────────────────────────────────────────────────────
+    const sector = f.sector.trim();
+    if (!sector) {
+      errs.sector = ar ? 'القطاع مطلوب' : 'Sector is required';
+    } else if (!_hasLetter(sector)) {
+      errs.sector = ar ? 'أدخل قطاعاً حقيقياً' : 'Enter a real sector';
+    } else if (_hasExcessiveRepeat(sector)) {
+      errs.sector = ar ? 'أدخل قطاعاً حقيقياً' : 'Enter a real sector';
+    }
+
+    // ── Country ───────────────────────────────────────────────────────────────
+    const country = f.country.trim();
+    if (!country) {
+      errs.country = ar ? 'الدولة مطلوبة' : 'Country is required';
+    } else if (!_hasLetter(country)) {
+      errs.country = ar ? 'أدخل دولة حقيقية' : 'Enter a real country';
+    } else if (_hasExcessiveRepeat(country)) {
+      errs.country = ar ? 'أدخل دولة حقيقية' : 'Enter a real country';
+    }
+
+    if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
+
     setErrors({});
-    setLead(parsed.data);
+    setLead({
+      name,
+      email,
+      sector,
+      country,
+      company: f.company?.trim() || undefined,
+      stage:   f.stage || undefined,
+    });
     setStage('quiz');
     setIdx(0);
     setAnswers({});
@@ -628,7 +730,7 @@ export function FounderAssessment() {
                     {a.stages.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </AssessField>
-                <AssessField label={a.fieldSector} isRTL={isRTL}>
+                <AssessField label={a.fieldSector} error={errors.sector} isRTL={isRTL}>
                   <input
                     value={leadForm.sector}
                     onChange={(e) => setLeadForm({ ...leadForm, sector: e.target.value })}
@@ -636,7 +738,7 @@ export function FounderAssessment() {
                     placeholder="SaaS, FinTech, E-commerce…"
                   />
                 </AssessField>
-                <AssessField label={a.fieldCountry} isRTL={isRTL}>
+                <AssessField label={a.fieldCountry} error={errors.country} isRTL={isRTL}>
                   <input
                     value={leadForm.country}
                     onChange={(e) => setLeadForm({ ...leadForm, country: e.target.value })}
