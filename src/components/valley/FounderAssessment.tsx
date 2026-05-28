@@ -431,29 +431,29 @@ export function FounderAssessment() {
         const t01 = progress;
 
         // ── On-curve bezier position ────────────────────────────────────────
-        // Path: M 0 8  C 20 8, 40 46, 50 46  C 60 46, 80 8, 100 8
-        // Two cubic segments forming a deep symmetric U-valley.
-        // Segment 1 (t01: 0→0.5): P0=(0,8)  P1=(20,8)  P2=(40,46) P3=(50,46)
-        // Segment 2 (t01: 0.5→1): P0=(50,46) P1=(60,46) P2=(80,8)  P3=(100,8)
+        // Path: M 0 35  C 180 35, 360 165, 450 165  C 540 165, 720 35, 900 35
+        // viewBox 900×200. Y=35 = safe zone top. Y=165 = valley floor. 130-unit descent.
+        // Segment 1 (t01 0→0.5): P0=(0,35)   P1=(180,35)  P2=(360,165) P3=(450,165)
+        // Segment 2 (t01 0.5→1): P0=(450,165) P1=(540,165) P2=(720,35)  P3=(900,35)
         const { cx, onCurveY } = (() => {
           if (t01 <= 0.5) {
             const t = t01 * 2, mt = 1 - t;
             return {
-              cx:       mt*mt*mt*0  + 3*mt*mt*t*20 + 3*mt*t*t*40 + t*t*t*50,
-              onCurveY: mt*mt*mt*8  + 3*mt*mt*t*8  + 3*mt*t*t*46 + t*t*t*46,
+              cx:       mt*mt*mt*0   + 3*mt*mt*t*180 + 3*mt*t*t*360 + t*t*t*450,
+              onCurveY: mt*mt*mt*35  + 3*mt*mt*t*35  + 3*mt*t*t*165 + t*t*t*165,
             };
           }
           const t = (t01 - 0.5) * 2, mt = 1 - t;
           return {
-            cx:       mt*mt*mt*50 + 3*mt*mt*t*60 + 3*mt*t*t*80 + t*t*t*100,
-            onCurveY: mt*mt*mt*46 + 3*mt*mt*t*46 + 3*mt*t*t*8  + t*t*t*8,
+            cx:       mt*mt*mt*450 + 3*mt*mt*t*540 + 3*mt*t*t*720 + t*t*t*900,
+            onCurveY: mt*mt*mt*165 + 3*mt*mt*t*165 + 3*mt*t*t*35  + t*t*t*35,
           };
         })();
 
-        // Risky answers sink the marker BELOW the reference curve — visible depth
-        const riskSink  = tension * 10;
-        const valleyY   = Math.min(54, onCurveY + riskSink);
-        const sinkDepth = valleyY - onCurveY; // 0 → up to 10
+        // Risky answers sink the marker below the reference curve — 32 units max
+        const riskSink  = tension * 32;
+        const valleyY   = Math.min(192, onCurveY + riskSink);
+        const sinkDepth = valleyY - onCurveY;
 
         const healthPct   = Math.round((1 - tension) * 100);
         const healthColor = healthPct > 65 ? '#34d399' : healthPct > 35 ? '#fbbf24' : '#f87171';
@@ -465,11 +465,11 @@ export function FounderAssessment() {
           : stateIdx >= 2 ? 'hsl(38 92% 55% / 0.18)'
           : 'hsl(0 0% 100% / 0.07)';
 
-        // Zone based on actual marker depth (0=SAFE … 3=CRIT)
+        // Zone based on marker depth: Y=35 (safe top) → Y=192 (floor+sink max)
         const zoneIdx =
-          valleyY < 18 ? 0
-          : valleyY < 30 ? 1
-          : valleyY < 44 ? 2
+          valleyY < 72  ? 0
+          : valleyY < 115 ? 1
+          : valleyY < 158 ? 2
           : 3;
 
         return (
@@ -498,122 +498,122 @@ export function FounderAssessment() {
                 </span>
               </div>
 
-              {/* Valley SVG — deep U-valley, marker visibly descends with risk */}
-              <div className="relative h-[72px]" style={{ overflow: 'visible' }}>
+              {/* Valley SVG — clarity-first, 160px tall, readable labels, visible descent */}
+              <div className="relative h-[160px]" style={{ overflow: 'visible' }}>
                 <svg
-                  viewBox="0 0 100 58"
+                  viewBox="0 0 900 200"
                   preserveAspectRatio="none"
                   className="absolute inset-0 w-full h-full"
                   style={{ overflow: 'visible' }}
                 >
-                  {/* Valley floor — the abyss below the curve, reddens with tension */}
-                  <rect x="0" y="42" width="100" height="16"
-                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 40% / ${0.04 + tension * 0.10})`}
-                  />
-                  <line x1="0" y1="42" x2="100" y2="42"
-                    stroke={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.08 + tension * 0.14})`}
-                    strokeWidth="0.3"
-                  />
-
-                  {/* Zone bands */}
-                  <rect x="0"  y="0" width="25" height="42" fill="hsl(142 76% 50% / 0.04)" />
-                  <rect x="25" y="0" width="25" height="42" fill="hsl(38 92% 55%  / 0.04)" />
-                  <rect x="50" y="0" width="25" height="42" fill="hsl(18 92% 55%  / 0.07)" />
-                  <rect x="75" y="0" width="25" height="42" fill="hsl(0 0% 100%   / 0.02)" />
+                  {/* Subtle zone tints */}
+                  <rect x="0"   y="28" width="225" height="165" fill="hsl(142 76% 50% / 0.025)" />
+                  <rect x="225" y="28" width="225" height="165" fill="hsl(38 92% 55% / 0.025)" />
+                  <rect x="450" y="28" width="225" height="165" fill="hsl(18 92% 55% / 0.045)" />
+                  <rect x="675" y="28" width="225" height="165" fill="hsl(0 84% 55% / 0.025)" />
 
                   {/* Zone dividers */}
-                  {[25, 50, 75].map((x) => (
-                    <line key={x} x1={x} y1="0" x2={x} y2="52"
-                      stroke="hsl(0 0% 100% / 0.05)" strokeWidth="0.3" strokeDasharray="1.5 2" />
+                  {[225, 450, 675].map((x) => (
+                    <line key={x} x1={x} y1="28" x2={x} y2="188"
+                      stroke="hsl(0 0% 100% / 0.06)" strokeWidth="1" strokeDasharray="4 7" />
                   ))}
 
-                  {/* Rising danger pool — fills from valley floor as tension increases */}
+                  {/* Valley floor — danger zone below the curve */}
+                  <rect x="0" y="158" width="900" height="42"
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 40% / ${0.03 + tension * 0.11})`}
+                  />
+                  <line x1="0" y1="158" x2="900" y2="158"
+                    stroke={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.08 + tension * 0.18})`}
+                    strokeWidth="1.5"
+                  />
+
+                  {/* Rising danger pool — fills from floor as tension climbs */}
                   <rect
                     x="0"
-                    y={58 - tension * 20}
-                    width="100"
-                    height={tension * 20}
-                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 40% / ${0.05 + tension * 0.26})`}
+                    y={200 - tension * 42}
+                    width="900"
+                    height={tension * 42}
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 40% / ${0.04 + tension * 0.22})`}
                     style={{ transition: 'all 0.9s cubic-bezier(0.16,1,0.3,1)' }}
                   />
 
-                  {/* Ghost curve — reference valley (the curve without risk) */}
+                  {/* Ghost curve — the reference safe path */}
                   <path
-                    d="M 0 8 C 20 8, 40 46, 50 46 C 60 46, 80 8, 100 8"
+                    d="M 0 35 C 180 35, 360 165, 450 165 C 540 165, 720 35, 900 35"
                     fill="none"
-                    stroke="hsl(0 0% 100% / 0.09)"
-                    strokeWidth="0.6"
+                    stroke="hsl(0 0% 100% / 0.11)"
+                    strokeWidth="1.8"
                   />
 
-                  {/* Active trace — draws in as founder progresses through questions */}
+                  {/* Active trace — draws in as founder moves through questions */}
                   <path
-                    d="M 0 8 C 20 8, 40 46, 50 46 C 60 46, 80 8, 100 8"
+                    d="M 0 35 C 180 35, 360 165, 450 165 C 540 165, 720 35, 900 35"
                     fill="none"
                     stroke={accent}
-                    strokeWidth="0.9"
+                    strokeWidth="2.5"
                     pathLength={100}
                     strokeDasharray={100}
                     strokeDashoffset={100 - t01 * 100}
                     style={{ transition: 'stroke-dashoffset 0.65s cubic-bezier(0.16,1,0.3,1)' }}
                   />
 
-                  {/* Depth indicator — dashed line shows how far BELOW the curve */}
-                  {sinkDepth > 1.5 && (
+                  {/* Depth indicator — shows how far below the safe path the founder is */}
+                  {sinkDepth > 4 && (
                     <line
-                      x1={cx} y1={onCurveY + 1.5}
-                      x2={cx} y2={valleyY - 1.5}
+                      x1={cx} y1={onCurveY + 4}
+                      x2={cx} y2={valleyY - 4}
                       stroke={accent}
-                      strokeWidth="0.45"
-                      strokeDasharray="1.2 1"
-                      opacity={Math.min(0.9, sinkDepth / 8)}
+                      strokeWidth="1.5"
+                      strokeDasharray="5 4"
+                      opacity={Math.min(0.85, sinkDepth / 26)}
                       style={{ transition: 'all 0.9s cubic-bezier(0.16,1,0.3,1)' }}
                     />
                   )}
 
-                  {/* Outer danger halo — expands dramatically at high tension */}
+                  {/* Outer halo — expands with tension */}
                   <circle
                     cx={cx}
                     cy={valleyY}
-                    r={5 + tension * 12}
-                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${tension * 0.10})`}
+                    r={10 + tension * 24}
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${tension * 0.08})`}
                     style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease' }}
                   />
 
-                  {/* Marker halo — expands as founder descends into danger */}
+                  {/* Inner halo */}
                   <circle
                     cx={cx}
                     cy={valleyY}
-                    r={3 + tension * 3.5}
-                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.08 + tension * 0.22})`}
-                    style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.55s ease' }}
+                    r={5 + tension * 10}
+                    fill={`hsl(${stateIdx >= 4 ? '0' : '18'} 92% 55% / ${0.11 + tension * 0.20})`}
+                    style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease' }}
                   />
 
-                  {/* Founder marker — moves right (progress) + sinks with risk */}
+                  {/* Founder marker — clearly visible, pulses gently */}
                   <motion.circle
-                    initial={{ cx: 0, cy: 8 }}
-                    animate={{ cx, cy: valleyY, r: [2, 2.7, 2] }}
+                    initial={{ cx: 0, cy: 35 }}
+                    animate={{ cx, cy: valleyY, r: [7, 9, 7] }}
                     transition={{
                       cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
                       cy: { duration: 0.9,  ease: [0.16, 1, 0.3, 1] },
-                      r:  { duration: 1.8, repeat: Infinity, ease: 'easeInOut' },
+                      r:  { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
                     }}
                     fill={accent}
                   />
 
-                  {/* Zone labels */}
-                  {(['SAFE', 'EXP.', 'VALLEY', 'CRIT.'] as const).map((label, i) => (
+                  {/* Zone labels — readable, driven by vertical depth */}
+                  {(['STABLE', 'EXPOSED', 'VALLEY', 'CRITICAL'] as const).map((label, i) => (
                     <text
                       key={label}
-                      x={i * 25 + 12.5}
-                      y={57}
+                      x={i * 225 + 112}
+                      y={19}
                       textAnchor="middle"
-                      fontSize="3"
-                      letterSpacing="0.4"
+                      fontSize="18"
+                      letterSpacing="1.5"
                       fontFamily="ui-sans-serif, system-ui, sans-serif"
                       fill={
                         zoneIdx === i
-                          ? (i >= 3 ? 'hsl(0 84% 65%)' : i >= 2 ? 'hsl(18 92% 60%)' : i === 1 ? 'hsl(38 92% 60%)' : 'hsl(142 76% 55%)')
-                          : 'hsl(0 0% 100% / 0.22)'
+                          ? (i >= 3 ? 'hsl(0 84% 65%)' : i >= 2 ? 'hsl(18 92% 62%)' : i === 1 ? 'hsl(38 92% 62%)' : 'hsl(142 76% 58%)')
+                          : 'hsl(0 0% 100% / 0.20)'
                       }
                     >
                       {label}
