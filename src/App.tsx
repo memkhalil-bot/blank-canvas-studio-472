@@ -22,6 +22,13 @@ const Contact       = lazy(() => import("./pages/Contact"));
 const ValleyOfDeath = lazy(() => import("./pages/ValleyOfDeath"));
 const NotFound      = lazy(() => import("./pages/NotFound"));
 
+// ── Preview (temporary — remove after visual approval) ────────────────────────
+const ResultPreview = lazy(() =>
+  import("./components/valley/CinematicAssessmentResult").then((m) => ({
+    default: m.CinematicAssessmentResultPreview,
+  }))
+);
+
 // ── Admin pages (code-split, loaded only when visiting /admin/*) ──────────────
 const AdminLogin        = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminDashboard    = lazy(() => import("./pages/admin/AdminDashboard"));
@@ -63,6 +70,9 @@ function AnimatedRoutes() {
         <Route path="/ar/about"           element={<PageTransition><About /></PageTransition>} />
         <Route path="/ar/valley-of-death" element={<PageTransition><ValleyOfDeath /></PageTransition>} />
         <Route path="/ar/contact"         element={<PageTransition><Contact /></PageTransition>} />
+
+        {/* Preview route — remove after visual approval */}
+        <Route path="/result-preview" element={<Suspense fallback={<LoadingFallback />}><ResultPreview /></Suspense>} />
 
         {/* 404 */}
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
