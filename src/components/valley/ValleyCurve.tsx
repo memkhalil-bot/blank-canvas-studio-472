@@ -46,17 +46,18 @@ export function ValleyCurve() {
           transition={{ duration: 0.9 }}
           className="mb-16"
         >
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <span className="h-px w-10 bg-ember" />
-            <span className={cn(
-              'text-ember font-medium',
-              isRTL ? 'font-arabic text-sm' : 'text-[10px] tracking-[0.4em] uppercase'
-            )}>
-              {c.eyebrow}
-            </span>
-            <span className="h-px w-10 bg-ember" />
-          </div>
-          <h2 className={cn(
+          {c.eyebrow && (
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <span className="h-px w-10 bg-ember" />
+              <span className={cn(
+                'text-ember font-medium',
+                isRTL ? 'font-arabic text-sm' : 'text-[10px] tracking-[0.4em] uppercase'
+              )}>
+                {c.eyebrow}
+              </span>
+              <span className="h-px w-10 bg-ember" />
+            </div>
+          )}
             'text-4xl md:text-6xl leading-[1.15] tracking-tight',
             isRTL ? 'font-arabic font-bold leading-[1.4]' : 'font-serif-display'
           )}>
