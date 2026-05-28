@@ -508,10 +508,12 @@ const en: LangStrings = {
     confidentialNote:
       'Your answers are confidential. We only use them to prepare your session if you choose to book one.',
 
-    diagnosticProgress: 'Diagnostic',
+    diagnosticProgress: 'Descent',
     backButton:    'Back',
     pressHint:     'Press 1–{n} to answer',
     restartButton: 'Restart',
+    descentLabel: 'Founder state',
+    emotionalStates: ['Stable', 'Exposed', 'Slipping', 'Panic', 'Collapse risk'],
 
     analyzingLabel:   'Analyzing responses',
     analyzingHeading: 'Compiling your diagnosis…',
@@ -520,6 +522,7 @@ const en: LangStrings = {
     retryButton:  'Retry',
 
     diagnosisLabel: 'Diagnosis ·',
+    shockEyebrow: 'The truth, said plainly',
     verdicts: {
       STABLE: {
         title: 'You are outside the valley — for now.',
@@ -542,26 +545,53 @@ const en: LangStrings = {
           'This is not a coaching moment. It\'s a triage moment. The runway, the team, and your nervous system are all running on credit. Stop performing. Start cutting.',
       },
     },
+    consequences: {
+      STABLE:
+        'If you stop looking down, this is exactly the moment a quiet blind spot becomes the story of how the company died.',
+      EXPOSED:
+        'Ignored for another two quarters, the negotiation ends. The market stops asking. The team stops believing. You stop sleeping.',
+      'INSIDE THE VALLEY':
+        'Without intervention, you have weeks — not months. The next "small" decision you defer is the one that takes the company.',
+      'COLLAPSE PROXIMITY':
+        'The runway, the team, and your nervous system are all running on credit. Without triage now, this becomes a post-mortem someone else writes.',
+    },
+    recoveryPaths: {
+      STABLE:
+        'Audit your blind spots quarterly. Build a private mirror — one person who is allowed to tell you the truth out loud, with no consequences.',
+      EXPOSED:
+        'Name the risk to one trusted outsider this week. Cut one optimistic assumption from your forecast. Stop selling certainty internally.',
+      'INSIDE THE VALLEY':
+        'Triage runway, team, and the postponed decision — in that order. Choose what you will protect and what you will let go before the choice is taken from you.',
+      'COLLAPSE PROXIMITY':
+        'Stop performing. Stop hiring. Stop launching. Sit with one person who has seen this before and rebuild the next 30 days from honest math.',
+    },
     riskLevelLabel:    'Founder Risk Level',
     riskScoreLabel:    'Valley Risk Score',
     blindSpotsLabel:   'Blind Spots Detected',
     blindSpotsSection: 'Blind Spot Indicators',
     insightSection:    'Psychological Insight',
+    consequencesSection: 'If you ignore this',
+    recoverySection:   'Recovery path',
     nextMoveSection:   'Your next move',
     ctas: [
-      {
-        title: 'Book Emergency Session',
-        desc:  '60 minutes. We triage runway, team, and the decision you\'ve been postponing.',
-      },
-      {
-        title: 'Request Startup Autopsy',
-        desc:  'A full forensic review of where the company is bleeding — and why.',
-      },
-      {
-        title: 'Book Founder Call',
-        desc:  'Private 1:1 with Mohamed Khalil. Strategic, candid, off the record.',
-      },
+      { title: 'Book Emergency Session', desc: '60 minutes. We triage runway, team, and the decision you\'ve been postponing.' },
+      { title: 'Request Startup Autopsy', desc: 'A full forensic review of where the company is bleeding — and why.' },
+      { title: 'Book Founder Call', desc: 'Private 1:1 with Mohamed Khalil. Strategic, candid, off the record.' },
     ],
+    dynamicCtas: {
+      low: [
+        { title: 'Request a detailed report', desc: 'A written read-out of your diagnostic with the patterns we noticed.', intent: 'report' },
+        { title: 'Monitor your indicators', desc: 'Light-touch quarterly check-ins to catch drift before it becomes denial.', intent: 'monitor' },
+      ],
+      medium: [
+        { title: 'Request a Startup Autopsy', desc: 'A forensic review of where the company is quietly bleeding — and why.', intent: 'autopsy' },
+        { title: 'Build a recovery plan', desc: 'A 30-day plan to cut, protect, and rebuild on honest numbers.', intent: 'recovery' },
+        { title: 'Founder diagnosis session', desc: 'Private 1:1 with Mohamed Khalil to name what your team won\'t.', intent: 'founder-call' },
+      ],
+      high: [
+        { title: 'Emergency Founder Session', desc: 'This week. We triage runway, team, and the decision you\'ve been postponing. Limited intake.', intent: 'emergency', urgent: true },
+      ],
+    },
     continueLabel:          'Continue',
     restartDiagnosticLabel: 'Restart diagnostic',
 
