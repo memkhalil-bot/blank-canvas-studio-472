@@ -15,6 +15,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
+import { AssessmentResult } from './AssessmentResult';
+
 
 /**
  * FounderAssessment — cinematic, psychological, in-site diagnostic
