@@ -27,15 +27,17 @@ export default function ValleyOfDeath() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
           >
-            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
-              <span className="h-px w-12 bg-ember" />
-              <span className={cn(
-                'text-xs uppercase text-ember font-medium',
-                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
-              )}>
-                {v.eyebrow}
-              </span>
-            </div>
+            {v.eyebrow && (
+              <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
+                <span className="h-px w-12 bg-ember" />
+                <span className={cn(
+                  'text-xs uppercase text-ember font-medium',
+                  isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.3em]'
+                )}>
+                  {v.eyebrow}
+                </span>
+              </div>
+            )}
             <h1 className={cn(
               'leading-[0.95] tracking-tight',
               isRTL
@@ -66,15 +68,17 @@ export default function ValleyOfDeath() {
           transition={{ duration: 0.9 }}
           className={cn('relative max-w-3xl mx-auto', isRTL && 'text-right')}
         >
-          <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
-            <span className="h-px w-10 bg-ember" />
-            <span className={cn(
-              'text-[10px] uppercase text-ember font-medium',
-              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-            )}>
-              {v.lore.eyebrow}
-            </span>
-          </div>
+          {v.lore.eyebrow && (
+            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse text-xs')}>
+              <span className="h-px w-10 bg-ember" />
+              <span className={cn(
+                'text-[10px] uppercase text-ember font-medium',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+              )}>
+                {v.lore.eyebrow}
+              </span>
+            </div>
+          )}
           <h2 className={cn(
             'text-3xl md:text-5xl leading-[1.1] tracking-tight max-w-3xl',
             isRTL ? 'font-arabic font-bold leading-[1.5]' : 'font-serif-display'
