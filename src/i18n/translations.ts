@@ -182,6 +182,8 @@ interface LangStrings {
     backButton: string;
     pressHint: string;
     restartButton: string;
+    descentLabel: string;
+    emotionalStates: string[]; // 5: stable, exposed, slipping, panic, collapse
 
     analyzingLabel: string;
     analyzingHeading: string;
@@ -190,14 +192,20 @@ interface LangStrings {
     retryButton: string;
 
     diagnosisLabel: string;
+    shockEyebrow: string;
     verdicts: Record<string, { title: string; insight: string }>;
+    consequences: Record<string, string>;
+    recoveryPaths: Record<string, string>;
     riskLevelLabel: string;
     riskScoreLabel: string;
     blindSpotsLabel: string;
     blindSpotsSection: string;
     insightSection: string;
+    consequencesSection: string;
+    recoverySection: string;
     nextMoveSection: string;
     ctas: { title: string; desc: string }[];
+    dynamicCtas: Record<'low' | 'medium' | 'high', { title: string; desc: string; intent: string; urgent?: boolean }[]>;
     continueLabel: string;
     restartDiagnosticLabel: string;
 
@@ -207,6 +215,7 @@ interface LangStrings {
   testimonials: {
     defaultEyebrow: string;
     defaultHeading: string;
+    verifiedLabel: string;
   };
 
   notFound: {
