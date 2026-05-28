@@ -101,7 +101,26 @@ interface LangStrings {
     heroHeading1: string;
     heroHeading2: string;
     heroSub: string;
-    heroArabicSub: string;
+    lore: {
+      eyebrow: string;
+      heading1: string;
+      heading2: string;
+      p1: string;
+      p2: string;
+      p3: string;
+    };
+    curve: {
+      eyebrow: string;
+      heading1: string;
+      heading2: string;
+      sub: string;
+      stages: { label: string; danger?: boolean }[];
+      milestones: string[];
+      axisY: string;
+      axisX: string;
+      valleyLabel: string;
+      captions: { t: string; b: string }[];
+    };
     testimonialsEyebrow: string;
     testimonialsHeading: string;
   };
