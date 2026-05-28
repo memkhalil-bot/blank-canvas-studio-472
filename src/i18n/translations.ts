@@ -708,6 +708,7 @@ const en: LangStrings = {
   testimonials: {
     defaultEyebrow: 'Founder Field Notes',
     defaultHeading: 'What founders said\nafter the session.',
+    verifiedLabel: 'Verified founder',
   },
 
   notFound: {
