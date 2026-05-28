@@ -892,7 +892,7 @@ const ar: LangStrings = {
     metaTitle: 'وادي الموت — اختبار المؤسس',
     metaDesc:
       'تشخيص نفسي للنزول الذي يمرّ به كل مؤسس. لا تحفيز، لا تدريب — فقط الحقيقة عن مدى قربك من الحافة.',
-    eyebrow: '​',
+    eyebrow: '',
     heroHeading1: 'وادي',
     heroHeading2: 'الموت',
     heroSub:
