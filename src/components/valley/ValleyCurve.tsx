@@ -58,6 +58,7 @@ export function ValleyCurve() {
               <span className="h-px w-10 bg-ember" />
             </div>
           )}
+          <h2 className={cn(
             'text-4xl md:text-6xl leading-[1.15] tracking-tight',
             isRTL ? 'font-arabic font-bold leading-[1.4]' : 'font-serif-display'
           )}>
