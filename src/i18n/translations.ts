@@ -1205,6 +1205,7 @@ const ar: LangStrings = {
   testimonials: {
     defaultEyebrow: 'ملاحظات ميدانية من المؤسسين',
     defaultHeading: 'ما قاله المؤسسون\nبعد الجلسة.',
+    verifiedLabel: 'مؤسس موثَّق',
   },
 
   notFound: {
