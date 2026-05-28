@@ -149,19 +149,33 @@ export function FounderTestimonials({
                 {current.quote}
               </blockquote>
 
-              <figcaption className={cn('mt-10 flex items-center gap-4 text-sm', isRTL && 'flex-row-reverse')}>
+              {/* Subtle rating */}
+              <div className={cn('mt-8 flex items-center gap-1.5', isRTL && 'flex-row-reverse')} aria-label="5 out of 5">
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <svg key={i} viewBox="0 0 20 20" className="size-3 fill-ember/80" aria-hidden>
+                    <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L10 14.9 4.8 17.6l1-5.8L1.5 7.7l5.9-.9z" />
+                  </svg>
+                ))}
+              </div>
+
+              <figcaption className={cn('mt-4 flex items-center gap-4 text-sm flex-wrap', isRTL && 'flex-row-reverse')}>
                 <span className="h-px w-8 bg-ember" />
-                <span className="text-white/80 font-medium">
+                <span className="text-white/85 font-medium">
                   {current.author_name}
                 </span>
                 {current.author_role && (
-                  <span className="text-white/40">· {current.author_role}</span>
+                  <span className="text-white/45">· {current.author_role}</span>
                 )}
                 {current.company && (
-                  <span className="text-white/30 hidden md:inline">
-                    · {current.company}
-                  </span>
+                  <span className="text-white/35 hidden md:inline">· {current.company}</span>
                 )}
+                <span className={cn(
+                  'inline-flex items-center gap-1.5 text-[10px] uppercase text-ember/80 border border-ember/30 px-2 py-0.5',
+                  isRTL ? 'font-arabic tracking-normal text-xs' : 'tracking-[0.2em]'
+                )}>
+                  <span className="size-1 rounded-full bg-ember" />
+                  {t.testimonials.verifiedLabel}
+                </span>
               </figcaption>
             </motion.figure>
           </AnimatePresence>

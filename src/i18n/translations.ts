@@ -101,7 +101,26 @@ interface LangStrings {
     heroHeading1: string;
     heroHeading2: string;
     heroSub: string;
-    heroArabicSub: string;
+    lore: {
+      eyebrow: string;
+      heading1: string;
+      heading2: string;
+      p1: string;
+      p2: string;
+      p3: string;
+    };
+    curve: {
+      eyebrow: string;
+      heading1: string;
+      heading2: string;
+      sub: string;
+      stages: { label: string; danger?: boolean }[];
+      milestones: string[];
+      axisY: string;
+      axisX: string;
+      valleyLabel: string;
+      captions: { t: string; b: string }[];
+    };
     testimonialsEyebrow: string;
     testimonialsHeading: string;
   };
@@ -163,6 +182,8 @@ interface LangStrings {
     backButton: string;
     pressHint: string;
     restartButton: string;
+    descentLabel: string;
+    emotionalStates: string[]; // 5: stable, exposed, slipping, panic, collapse
 
     analyzingLabel: string;
     analyzingHeading: string;
@@ -171,14 +192,20 @@ interface LangStrings {
     retryButton: string;
 
     diagnosisLabel: string;
+    shockEyebrow: string;
     verdicts: Record<string, { title: string; insight: string }>;
+    consequences: Record<string, string>;
+    recoveryPaths: Record<string, string>;
     riskLevelLabel: string;
     riskScoreLabel: string;
     blindSpotsLabel: string;
     blindSpotsSection: string;
     insightSection: string;
+    consequencesSection: string;
+    recoverySection: string;
     nextMoveSection: string;
     ctas: { title: string; desc: string }[];
+    dynamicCtas: Record<'low' | 'medium' | 'high', { title: string; desc: string; intent: string; urgent?: boolean }[]>;
     continueLabel: string;
     restartDiagnosticLabel: string;
 
@@ -188,6 +215,7 @@ interface LangStrings {
   testimonials: {
     defaultEyebrow: string;
     defaultHeading: string;
+    verifiedLabel: string;
   };
 
   notFound: {
@@ -363,15 +391,44 @@ const en: LangStrings = {
   },
 
   valley: {
-    metaTitle: 'Valley of Death — The Founder Test | خبير الفشل',
+    metaTitle: 'Valley of Death — The Founder Test',
     metaDesc:
-      'A brutal self-diagnostic for founders. No motivation. Just the truth about how close your company is to the edge.',
-    eyebrow: 'The Founder Test · اختبار المؤسس',
+      'A psychological descent diagnostic for founders. No motivation. Just the truth about how close your company is to the edge.',
+    eyebrow: 'The Founder Test',
     heroHeading1: 'Valley',
     heroHeading2: 'of Death.',
     heroSub:
       'No motivation. No coaching. Answer honestly — the only person you can lie to here is yourself.',
-    heroArabicSub: 'اختبار صريح يكشف لك أين أنت فعلاً.',
+    lore: {
+      eyebrow: 'Before you descend',
+      heading1: 'Most founders never see',
+      heading2: 'the valley until they are inside it.',
+      p1: 'The Valley of Death is the silent window between burning the last of your conviction and earning the first dollar of real revenue. It is where the cash is shrinking, the team is reading your face, and the spreadsheet has stopped lying.',
+      p2: 'Most companies do not die from the market. They die in the valley — because the founder kept performing certainty while the ground gave way underneath.',
+      p3: 'This diagnostic was built from analyzing hundreds of startup failure post-mortems and the cognitive patterns founders show in the months before collapse. There is no right answer. There is only what you finally admit.',
+    },
+    curve: {
+      eyebrow: 'The Curve',
+      heading1: 'Every company walks',
+      heading2: 'the same descent.',
+      sub: 'The only difference is who reaches the other side, and who disappears at the bottom.',
+      stages: [
+        { label: 'PRE-SEED' },
+        { label: 'SEED' },
+        { label: 'FUNDING GAP', danger: true },
+        { label: 'EARLY' },
+        { label: 'GROWTH' },
+      ],
+      milestones: ['Research', 'Development', 'Product launch', 'Product success', 'Business success'],
+      axisY: 'CUMULATIVE P/L',
+      axisX: 'TIME',
+      valleyLabel: 'VALLEY OF DEATH',
+      captions: [
+        { t: 'The descent', b: 'You burn cash before the product earns. Every month brings you closer to the floor.' },
+        { t: 'The floor', b: 'Most companies die here. No capital, no traction, no time, no honest mirror.' },
+        { t: 'The climb', b: 'If you make it here, revenue starts covering burn. The company finally exists.' },
+      ],
+    },
     testimonialsEyebrow: 'After the Session',
     testimonialsHeading: "What they said\nwhen the room got quiet.",
   },
@@ -451,10 +508,12 @@ const en: LangStrings = {
     confidentialNote:
       'Your answers are confidential. We only use them to prepare your session if you choose to book one.',
 
-    diagnosticProgress: 'Diagnostic',
+    diagnosticProgress: 'Descent',
     backButton:    'Back',
     pressHint:     'Press 1–{n} to answer',
     restartButton: 'Restart',
+    descentLabel: 'Founder state',
+    emotionalStates: ['Stable', 'Exposed', 'Slipping', 'Panic', 'Collapse risk'],
 
     analyzingLabel:   'Analyzing responses',
     analyzingHeading: 'Compiling your diagnosis…',
@@ -463,6 +522,7 @@ const en: LangStrings = {
     retryButton:  'Retry',
 
     diagnosisLabel: 'Diagnosis ·',
+    shockEyebrow: 'The truth, said plainly',
     verdicts: {
       STABLE: {
         title: 'You are outside the valley — for now.',
@@ -485,26 +545,53 @@ const en: LangStrings = {
           'This is not a coaching moment. It\'s a triage moment. The runway, the team, and your nervous system are all running on credit. Stop performing. Start cutting.',
       },
     },
+    consequences: {
+      STABLE:
+        'If you stop looking down, this is exactly the moment a quiet blind spot becomes the story of how the company died.',
+      EXPOSED:
+        'Ignored for another two quarters, the negotiation ends. The market stops asking. The team stops believing. You stop sleeping.',
+      'INSIDE THE VALLEY':
+        'Without intervention, you have weeks — not months. The next "small" decision you defer is the one that takes the company.',
+      'COLLAPSE PROXIMITY':
+        'The runway, the team, and your nervous system are all running on credit. Without triage now, this becomes a post-mortem someone else writes.',
+    },
+    recoveryPaths: {
+      STABLE:
+        'Audit your blind spots quarterly. Build a private mirror — one person who is allowed to tell you the truth out loud, with no consequences.',
+      EXPOSED:
+        'Name the risk to one trusted outsider this week. Cut one optimistic assumption from your forecast. Stop selling certainty internally.',
+      'INSIDE THE VALLEY':
+        'Triage runway, team, and the postponed decision — in that order. Choose what you will protect and what you will let go before the choice is taken from you.',
+      'COLLAPSE PROXIMITY':
+        'Stop performing. Stop hiring. Stop launching. Sit with one person who has seen this before and rebuild the next 30 days from honest math.',
+    },
     riskLevelLabel:    'Founder Risk Level',
     riskScoreLabel:    'Valley Risk Score',
     blindSpotsLabel:   'Blind Spots Detected',
     blindSpotsSection: 'Blind Spot Indicators',
     insightSection:    'Psychological Insight',
+    consequencesSection: 'If you ignore this',
+    recoverySection:   'Recovery path',
     nextMoveSection:   'Your next move',
     ctas: [
-      {
-        title: 'Book Emergency Session',
-        desc:  '60 minutes. We triage runway, team, and the decision you\'ve been postponing.',
-      },
-      {
-        title: 'Request Startup Autopsy',
-        desc:  'A full forensic review of where the company is bleeding — and why.',
-      },
-      {
-        title: 'Book Founder Call',
-        desc:  'Private 1:1 with Mohamed Khalil. Strategic, candid, off the record.',
-      },
+      { title: 'Book Emergency Session', desc: '60 minutes. We triage runway, team, and the decision you\'ve been postponing.' },
+      { title: 'Request Startup Autopsy', desc: 'A full forensic review of where the company is bleeding — and why.' },
+      { title: 'Book Founder Call', desc: 'Private 1:1 with Mohamed Khalil. Strategic, candid, off the record.' },
     ],
+    dynamicCtas: {
+      low: [
+        { title: 'Request a detailed report', desc: 'A written read-out of your diagnostic with the patterns we noticed.', intent: 'report' },
+        { title: 'Monitor your indicators', desc: 'Light-touch quarterly check-ins to catch drift before it becomes denial.', intent: 'monitor' },
+      ],
+      medium: [
+        { title: 'Request a Startup Autopsy', desc: 'A forensic review of where the company is quietly bleeding — and why.', intent: 'autopsy' },
+        { title: 'Build a recovery plan', desc: 'A 30-day plan to cut, protect, and rebuild on honest numbers.', intent: 'recovery' },
+        { title: 'Founder diagnosis session', desc: 'Private 1:1 with Mohamed Khalil to name what your team won\'t.', intent: 'founder-call' },
+      ],
+      high: [
+        { title: 'Emergency Founder Session', desc: 'This week. We triage runway, team, and the decision you\'ve been postponing. Limited intake.', intent: 'emergency', urgent: true },
+      ],
+    },
     continueLabel:          'Continue',
     restartDiagnosticLabel: 'Restart diagnostic',
 
@@ -621,6 +708,7 @@ const en: LangStrings = {
   testimonials: {
     defaultEyebrow: 'Founder Field Notes',
     defaultHeading: 'What founders said\nafter the session.',
+    verifiedLabel: 'Verified founder',
   },
 
   notFound: {
@@ -801,17 +889,46 @@ const ar: LangStrings = {
   },
 
   valley: {
-    metaTitle: 'وادي الموت — اختبار المؤسس | خبير الفشل',
+    metaTitle: 'وادي الموت — اختبار المؤسس',
     metaDesc:
-      'تشخيص ذاتي صريح للمؤسسين. لا تحفيز. فقط الحقيقة عن مدى قرب شركتك من الحافة.',
+      'تشخيص نفسي للنزول الذي يمرّ به كل مؤسس. لا تحفيز، لا تدريب — فقط الحقيقة عن مدى قربك من الحافة.',
     eyebrow: 'اختبار المؤسس',
     heroHeading1: 'وادي',
     heroHeading2: 'الموت.',
     heroSub:
-      'لا تحفيز. لا تدريب. أجب بصدق — الشخص الوحيد الذي يمكنك كذبه هنا هو أنت.',
-    heroArabicSub: 'اختبار صريح يكشف لك أين أنت فعلاً.',
+      'لا تحفيز. لا تدريب. أجِب بصدق — الشخص الوحيد الذي تستطيع الكذب عليه هنا هو أنت.',
+    lore: {
+      eyebrow: 'قبل أن تنزل',
+      heading1: 'معظم المؤسسين',
+      heading2: 'لا يرون الوادي إلا حين يصبحون داخله.',
+      p1: 'وادي الموت هو الفجوة الصامتة بين احتراق آخر شعلة من قناعتك، وأول دولار حقيقي من الإيراد. هنا يتقلّص النقد، ويقرأ الفريق وجهك، وتكفّ الجداول عن الكذب.',
+      p2: 'الشركات لا تموت من السوق غالباً. تموت داخل الوادي — لأن المؤسس استمر في تمثيل الثقة بينما الأرض تنهار تحته.',
+      p3: 'بُني هذا التشخيص من تحليل مئات حالات الفشل، ومن الأنماط الإدراكية التي يُظهرها المؤسسون في الأشهر السابقة على الانهيار. لا توجد إجابة صحيحة هنا. هناك فقط ما ستعترف به أخيراً.',
+    },
+    curve: {
+      eyebrow: 'المنحنى',
+      heading1: 'كل شركة تسير',
+      heading2: 'على المنحنى نفسه.',
+      sub: 'الفرق الوحيد: من يصل إلى الجهة الأخرى، ومن يختفي في القاع.',
+      stages: [
+        { label: 'ما قبل التأسيس' },
+        { label: 'التأسيس' },
+        { label: 'فجوة التمويل', danger: true },
+        { label: 'النمو المبكر' },
+        { label: 'التوسع' },
+      ],
+      milestones: ['بحث', 'تطوير', 'إطلاق المنتج', 'نجاح المنتج', 'نجاح الشركة'],
+      axisY: 'الأرباح/الخسائر التراكمية',
+      axisX: 'الزمن',
+      valleyLabel: 'وادي الموت',
+      captions: [
+        { t: 'النزول', b: 'تحرق النقد قبل أن يبيع المنتج. كل شهر يقرّبك من القاع.' },
+        { t: 'القاع', b: 'هنا تموت معظم الشركات. لا تمويل، لا إيرادات كافية، لا وقت، ولا مرآة صادقة.' },
+        { t: 'الصعود', b: 'إن وصلت إلى هنا، الإيراد بدأ يغطي الحرق. الشركة أصبحت حقيقة.' },
+      ],
+    },
     testimonialsEyebrow: 'بعد الجلسة',
-    testimonialsHeading: 'ما قالوه\nحين تهدّأت الغرفة.',
+    testimonialsHeading: 'ما قالوه\nحين هدأت الغرفة.',
   },
 
   contact: {
@@ -888,10 +1005,12 @@ const ar: LangStrings = {
     confidentialNote:
       'إجاباتك سرية. نستخدمها فقط للتحضير لجلستك إن اخترتَ حجزها.',
 
-    diagnosticProgress: 'التشخيص',
+    diagnosticProgress: 'النزول',
     backButton:    'رجوع',
     pressHint:     'اضغط 1–{n} للإجابة',
     restartButton: 'إعادة البدء',
+    descentLabel:  'حالة المؤسس',
+    emotionalStates: ['مستقر', 'مكشوف', 'ينزلق', 'في ذعر صامت', 'على حافة الانهيار'],
 
     analyzingLabel:   'تحليل الإجابات',
     analyzingHeading: 'جاري تجميع تشخيصك…',
@@ -900,48 +1019,76 @@ const ar: LangStrings = {
     retryButton:  'إعادة المحاولة',
 
     diagnosisLabel: 'التشخيص ·',
+    shockEyebrow: 'الحقيقة، دون تجميل',
     verdicts: {
       STABLE: {
         title: 'أنتَ خارج الوادي — في الوقت الحالي.',
         insight:
-          'لا تزال تعمل بوضوح. الخطر في مرحلتك ليس الانهيار — بل الاطمئنان المفرط. المؤسسون الذين يسقطون بأشد الطرق وجعاً هم من توقّفوا عن النظر إلى الأسفل.',
+          'لا تزال تعمل بوضوح. الخطر في مرحلتك ليس الانهيار، بل الاطمئنان. المؤسسون الذين يسقطون بأشدّ الطرق وجعاً هم من توقّفوا عن النظر إلى الأسفل.',
       },
       EXPOSED: {
         title: 'أنتَ على حافة الوادي.',
         insight:
-          'لا تزال ترى الطريق، لكن الأرض تحتك تتحرك. لستَ تتجاهل المخاطر. أنتَ تتفاوض معها عاطفياً.',
+          'لا تزال ترى الطريق، لكنّ الأرض تحتك تتحرك. لستَ تتجاهل المخاطر. أنتَ تتفاوض معها عاطفياً.',
       },
       'INSIDE THE VALLEY': {
         title: 'أنتَ داخل وادي الموت.',
         insight:
-          'أنتَ تعرف بالفعل. الإشارات كانت موجودة منذ أسابيع. ما تحتاجه ليس مزيداً من التحفيز — بل شخصاً يجلس في مواجهتك ويرفض إغماض عينيه.',
+          'أنتَ تعرف بالفعل. الإشارات كانت موجودة منذ أسابيع. ما تحتاجه ليس مزيداً من التحفيز، بل شخصاً يجلس في مواجهتك ويرفض إغماض عينيه.',
       },
       'COLLAPSE PROXIMITY': {
-        title: 'أنتَ أقرب للانهيار مما تعترف به.',
+        title: 'أنتَ أقرب للانهيار ممّا تعترف به.',
         insight:
-          'هذه ليست لحظة تدريب. إنها لحظة إسعاف. التدفق النقدي والفريق وجهازك العصبي كلها تعمل على سلفة. توقّف عن التمثيل. ابدأ بالتقليص.',
+          'هذه ليست لحظة تدريب. إنها لحظة إسعاف. التدفق النقدي والفريق وجهازك العصبي كلها تعمل بالدَّيْن. توقّف عن التمثيل. ابدأ بالتقليص.',
       },
+    },
+    consequences: {
+      STABLE:
+        'إن توقّفتَ عن النظر إلى الأسفل، فهذه بالضبط اللحظة التي تتحول فيها نقطة عمى صغيرة إلى قصة موت الشركة.',
+      EXPOSED:
+        'إن تجاهلتَ الإشارات لربعين آخرين، تنتهي المفاوضة. السوق يكفّ عن السؤال. الفريق يكفّ عن الإيمان. وأنتَ تكفّ عن النوم.',
+      'INSIDE THE VALLEY':
+        'دون تدخّل، أمامك أسابيع لا أشهر. القرار "الصغير" التالي الذي تؤجّله هو الذي سيأخذ الشركة.',
+      'COLLAPSE PROXIMITY':
+        'التدفق النقدي والفريق وجهازك العصبي كلها تعمل بالدَّيْن. دون إسعاف الآن، يصبح هذا تشريحاً يكتبه شخص آخر عنك.',
+    },
+    recoveryPaths: {
+      STABLE:
+        'افحص نقاط عماك كل ربع. ابنِ مرآة خاصة — شخص واحد مسموح له أن يقول لك الحقيقة بصوت عالٍ، دون عواقب.',
+      EXPOSED:
+        'سَمِّ الخطر لشخص واحد موثوق من خارج الفريق هذا الأسبوع. اقطع افتراضاً متفائلاً من خطتك. توقّف عن بيع اليقين داخلياً.',
+      'INSIDE THE VALLEY':
+        'حدّد الأولويات: التدفق، الفريق، القرار المؤجَّل — بهذا الترتيب. اختر ما ستحميه وما ستتركه قبل أن يُفرض الاختيار عليك.',
+      'COLLAPSE PROXIMITY':
+        'توقّف عن التمثيل. توقّف عن التوظيف. توقّف عن الإطلاق. اجلس مع شخص رأى هذا من قبل، وأعِد بناء الثلاثين يوماً القادمة بأرقام صادقة.',
     },
     riskLevelLabel:    'مستوى مخاطر المؤسس',
     riskScoreLabel:    'درجة مخاطر الوادي',
     blindSpotsLabel:   'نقاط عمى مكتشفة',
     blindSpotsSection: 'مؤشرات نقاط العمى',
     insightSection:    'الرؤية النفسية',
+    consequencesSection: 'إن تجاهلتَ هذا',
+    recoverySection:   'مسار التعافي',
     nextMoveSection:   'خطوتك التالية',
     ctas: [
-      {
-        title: 'احجز جلسة طارئة',
-        desc:  '٦٠ دقيقة. نحدد وضع التدفق النقدي والفريق والقرار الذي أجّلتَه.',
-      },
-      {
-        title: 'اطلب تشريح شركتك',
-        desc:  'مراجعة جنائية شاملة لمكان نزف الشركة — ولماذا.',
-      },
-      {
-        title: 'احجز مكالمة المؤسس',
-        desc:  'جلسة خاصة 1:1 مع محمد خليل. استراتيجية، صريحة، سرية.',
-      },
+      { title: 'احجز جلسة طارئة', desc: '٦٠ دقيقة. نحدّد التدفق والفريق والقرار الذي أجّلتَه.' },
+      { title: 'اطلب تشريح شركتك', desc: 'مراجعة جنائية شاملة لمكان نزف الشركة — ولماذا.' },
+      { title: 'احجز مكالمة المؤسس', desc: 'جلسة خاصة 1:1 مع محمد خليل. استراتيجية، صريحة، سرية.' },
     ],
+    dynamicCtas: {
+      low: [
+        { title: 'اطلب تقريراً مفصّلاً', desc: 'قراءة مكتوبة لتشخيصك مع الأنماط التي رصدناها.', intent: 'report' },
+        { title: 'راقِب مؤشّراتك', desc: 'فحص ربع سنوي خفيف لرصد الانزلاق قبل أن يصبح إنكاراً.', intent: 'monitor' },
+      ],
+      medium: [
+        { title: 'اطلب تشريح شركتك', desc: 'مراجعة جنائية لمكان النزف الصامت — ولماذا يحدث الآن.', intent: 'autopsy' },
+        { title: 'ابنِ خطة تعافٍ', desc: 'خطة ٣٠ يوماً لقطع، وحماية، وإعادة البناء على أرقام صادقة.', intent: 'recovery' },
+        { title: 'جلسة تشخيص للمؤسس', desc: 'جلسة خاصة 1:1 مع محمد خليل لتسمية ما لن يقوله فريقك.', intent: 'founder-call' },
+      ],
+      high: [
+        { title: 'جلسة طارئة للمؤسس', desc: 'هذا الأسبوع. نحدّد الأولويات: التدفق، الفريق، القرار المؤجَّل. الحالات محدودة.', intent: 'emergency', urgent: true },
+      ],
+    },
     continueLabel:          'متابعة',
     restartDiagnosticLabel: 'إعادة التشخيص',
 
@@ -1058,6 +1205,7 @@ const ar: LangStrings = {
   testimonials: {
     defaultEyebrow: 'ملاحظات ميدانية من المؤسسين',
     defaultHeading: 'ما قاله المؤسسون\nبعد الجلسة.',
+    verifiedLabel: 'مؤسس موثَّق',
   },
 
   notFound: {
