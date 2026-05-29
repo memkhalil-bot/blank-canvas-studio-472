@@ -10,7 +10,7 @@ import { COUNTRIES_SORTED } from '@/data/valleyCountries';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Stage = 'gate' | 'quiz' | 'analyzing' | 'result';
+type Stage = 'gate' | 'warning' | 'quiz' | 'analyzing' | 'result';
 
 interface BinaryQ {
   id: string;
@@ -18,23 +18,24 @@ interface BinaryQ {
   ar: string;
   yesRisky: boolean; // true → Yes=5 No=1; false → Yes=1 No=5
   blindSpot?: string;
+  blindSpotAr?: string;
 }
 
 // ── 12 Bilingual Yes/No Questions ─────────────────────────────────────────────
 
 const QUESTIONS: BinaryQ[] = [
-  { id: 'q01', en: 'Is your cash runway less than 3 months?',                              ar: 'هل مدة بقاء نقدك أقل من 3 أشهر؟',                                           yesRisky: true,  blindSpot: 'Financial denial' },
-  { id: 'q02', en: 'Do you avoid opening your cash flow sheet?',                            ar: 'هل تتجنّب فتح جدول التدفق النقدي؟',                                          yesRisky: true,  blindSpot: 'Financial denial' },
-  { id: 'q03', en: 'Has your team stopped giving you honest feedback?',                     ar: 'هل توقّف فريقك عن إعطائك تغذية راجعة صادقة؟',                               yesRisky: true,  blindSpot: 'Leadership isolation' },
-  { id: 'q04', en: 'Is there a hard decision you have been avoiding for months?',           ar: 'هل هناك قرار صعب أجّلتَه لأشهر؟',                                           yesRisky: true,  blindSpot: 'Decision paralysis' },
-  { id: 'q05', en: 'Does losing one client or investor mean collapse?',                     ar: 'هل فقدان عميل واحد أو مستثمر يعني الانهيار؟',                               yesRisky: true,  blindSpot: 'Concentration risk' },
-  { id: 'q06', en: 'Has your sleep deteriorated significantly in the last month?',          ar: 'هل تدهور نومك بشكل ملحوظ خلال الشهر الماضي؟',                              yesRisky: true,  blindSpot: 'Burnout proximity' },
-  { id: 'q07', en: 'Do you feel the company has become your entire identity?',              ar: 'هل تشعر أن الشركة أصبحت هويتك بالكامل؟',                                    yesRisky: true,  blindSpot: 'Identity fusion' },
-  { id: 'q08', en: 'Is the company burning more than it earns with no break-even in sight?', ar: 'هل تحرق الشركة أكثر مما تكسب دون مسار واضح للتعادل؟',                    yesRisky: true,  blindSpot: 'Financial denial' },
-  { id: 'q09', en: 'Has a co-founder or key person left in the last 3 months?',             ar: 'هل غادر شريك مؤسس أو عضو فريق أساسي خلال الأشهر الثلاثة الماضية؟',        yesRisky: true,  blindSpot: 'Leadership isolation' },
-  { id: 'q10', en: 'Have honest conversations about the company\'s problems become rare?',  ar: 'هل أصبحت المحادثات الصادقة حول مشاكل الشركة نادرة؟',                        yesRisky: true,  blindSpot: 'Leadership isolation' },
-  { id: 'q11', en: 'When someone warns you about the company, do you get defensive?',       ar: 'حين يحذّرك أحد بشأن الشركة، هل تدافع فوراً؟',                               yesRisky: true,  blindSpot: 'Founder denial' },
-  { id: 'q12', en: 'Do you have a real written Plan B if the company fails?',               ar: 'هل لديك خطة بديلة مكتوبة حقيقية إن فشلت الشركة؟',                           yesRisky: false, blindSpot: 'No exit plan' },
+  { id: 'q01', en: 'Is your cash runway less than 3 months?',                               ar: 'هل مدة بقاء نقدك أقل من 3 أشهر؟',                                            yesRisky: true,  blindSpot: 'Financial denial',       blindSpotAr: 'إنكار الوضع المالي' },
+  { id: 'q02', en: 'Do you avoid opening your cash flow sheet?',                             ar: 'هل تتجنّب فتح جدول التدفق النقدي؟',                                           yesRisky: true,  blindSpot: 'Financial denial',       blindSpotAr: 'إنكار الوضع المالي' },
+  { id: 'q03', en: 'Has your team stopped giving you honest feedback?',                      ar: 'هل توقّف فريقك عن إعطائك تغذية راجعة صادقة؟',                                yesRisky: true,  blindSpot: 'Leadership isolation',   blindSpotAr: 'عزلة القيادة' },
+  { id: 'q04', en: 'Is there a hard decision you have been avoiding for months?',            ar: 'هل هناك قرار صعب أجّلتَه لأشهر؟',                                            yesRisky: true,  blindSpot: 'Decision paralysis',     blindSpotAr: 'شلل القرار' },
+  { id: 'q05', en: 'Does losing one client or investor mean collapse?',                      ar: 'هل فقدان عميل واحد أو مستثمر يعني الانهيار؟',                                yesRisky: true,  blindSpot: 'Concentration risk',     blindSpotAr: 'مخاطر التركّز' },
+  { id: 'q06', en: 'Has your sleep deteriorated significantly in the last month?',           ar: 'هل تدهور نومك بشكل ملحوظ خلال الشهر الماضي؟',                               yesRisky: true,  blindSpot: 'Burnout proximity',      blindSpotAr: 'قرب الاحتراق' },
+  { id: 'q07', en: 'Do you feel the company has become your entire identity?',               ar: 'هل تشعر أن الشركة أصبحت هويتك بالكامل؟',                                     yesRisky: true,  blindSpot: 'Identity fusion',        blindSpotAr: 'الاندماج مع الهوية' },
+  { id: 'q08', en: 'Is the company burning more than it earns with no break-even in sight?', ar: 'هل تحرق الشركة أكثر مما تكسب دون مسار واضح للتعادل؟',                     yesRisky: true,  blindSpot: 'Financial denial',       blindSpotAr: 'إنكار الوضع المالي' },
+  { id: 'q09', en: 'Has a co-founder or key person left in the last 3 months?',              ar: 'هل غادر شريك مؤسس أو عضو فريق أساسي خلال الأشهر الثلاثة الماضية؟',         yesRisky: true,  blindSpot: 'Leadership isolation',   blindSpotAr: 'عزلة القيادة' },
+  { id: 'q10', en: 'Have honest conversations about the company\'s problems become rare?',   ar: 'هل أصبحت المحادثات الصادقة حول مشاكل الشركة نادرة؟',                         yesRisky: true,  blindSpot: 'Leadership isolation',   blindSpotAr: 'عزلة القيادة' },
+  { id: 'q11', en: 'When someone warns you about the company, do you get defensive?',        ar: 'حين يحذّرك أحد بشأن الشركة، هل تدافع فوراً؟',                                yesRisky: true,  blindSpot: 'Founder denial',         blindSpotAr: 'إنكار المؤسس' },
+  { id: 'q12', en: 'Do you have a real written Plan B if the company fails?',                ar: 'هل لديك خطة بديلة مكتوبة حقيقية إن فشلت الشركة؟',                            yesRisky: false, blindSpot: 'No exit plan',           blindSpotAr: 'غياب خطة الخروج' },
 ];
 
 // ── Dropdown data ─────────────────────────────────────────────────────────────
@@ -58,6 +59,15 @@ const STAGES = {
 const EMPLOYEES = {
   en: ['Founder Only','2–5','6–10','11–25','26–50','51+'],
   ar: ['المؤسس فقط','٢–٥','٦–١٠','١١–٢٥','٢٦–٥٠','٥١ فأكثر'],
+};
+
+// ── Arabic level display labels ────────────────────────────────────────────────
+
+const LEVEL_LABELS_AR: Record<string, string> = {
+  'STABLE':             'مستقر',
+  'EXPOSED':            'مكشوف',
+  'INSIDE THE VALLEY':  'داخل الوادي',
+  'COLLAPSE PROXIMITY': 'على حافة الانهيار',
 };
 
 // ── Validation ────────────────────────────────────────────────────────────────
@@ -96,28 +106,24 @@ function validateEmail(email: string, ar: boolean): string | null {
 
 function classify(score: number, max: number, verdicts: Record<string, { title: string; insight: string }>) {
   const pct = Math.round((score / max) * 100);
-  if (pct < 30) return { level: 'STABLE', title: verdicts['STABLE']?.title ?? '', tone: 'text-emerald-400', insight: verdicts['STABLE']?.insight ?? '' };
-  if (pct < 55) return { level: 'EXPOSED', title: verdicts['EXPOSED']?.title ?? '', tone: 'text-amber-400', insight: verdicts['EXPOSED']?.insight ?? '' };
-  if (pct < 78) return { level: 'INSIDE THE VALLEY', title: verdicts['INSIDE THE VALLEY']?.title ?? '', tone: 'text-ember', insight: verdicts['INSIDE THE VALLEY']?.insight ?? '' };
-  return { level: 'COLLAPSE PROXIMITY', title: verdicts['COLLAPSE PROXIMITY']?.title ?? '', tone: 'text-red-500', insight: verdicts['COLLAPSE PROXIMITY']?.insight ?? '' };
+  if (pct < 30) return { level: 'STABLE',             title: verdicts['STABLE']?.title ?? '',             tone: 'text-emerald-400', insight: verdicts['STABLE']?.insight ?? '' };
+  if (pct < 55) return { level: 'EXPOSED',            title: verdicts['EXPOSED']?.title ?? '',            tone: 'text-amber-400',   insight: verdicts['EXPOSED']?.insight ?? '' };
+  if (pct < 78) return { level: 'INSIDE THE VALLEY',  title: verdicts['INSIDE THE VALLEY']?.title ?? '',  tone: 'text-ember',       insight: verdicts['INSIDE THE VALLEY']?.insight ?? '' };
+  return          { level: 'COLLAPSE PROXIMITY', title: verdicts['COLLAPSE PROXIMITY']?.title ?? '', tone: 'text-red-500',     insight: verdicts['COLLAPSE PROXIMITY']?.insight ?? '' };
 }
 
 // ── Image-calibrated path waypoints (1672×941 coordinate space) ──────────────
-// Each waypoint is measured from the orange glowing path in valley-bg-ar.png
-// (actual image dimensions: 1672×941 px).
-// pathAt() smoothstep-interpolates between waypoints so the marker sits on
-// the exact visible path in the image at all times.
 
 interface PathPt { t01: number; cx: number; cy: number }
 const PATH_KEYFRAMES: PathPt[] = [
-  { t01: 0.00, cx: 161, cy: 325 },  // path start (left plateau)
-  { t01: 0.10, cx: 201, cy: 341 },  // Stage 1 — Pre-Startup
-  { t01: 0.30, cx: 454, cy: 436 },  // Stage 2 — Foundation
-  { t01: 0.45, cx: 649, cy: 567 },  // Stage 3 — Funding Gap (lower descent)
-  { t01: 0.50, cx: 836, cy: 820 },  // Valley Floor — deepest point
-  { t01: 0.70, cx: 1097, cy: 517 }, // Stage 4 — Early Growth
-  { t01: 0.90, cx: 1430, cy: 409 }, // Stage 5 — Expansion
-  { t01: 1.00, cx: 1436, cy: 401 }, // path end (right plateau)
+  { t01: 0.00, cx: 161,  cy: 325 },
+  { t01: 0.10, cx: 201,  cy: 341 },
+  { t01: 0.30, cx: 454,  cy: 436 },
+  { t01: 0.45, cx: 649,  cy: 567 },
+  { t01: 0.50, cx: 836,  cy: 820 },
+  { t01: 0.70, cx: 1097, cy: 517 },
+  { t01: 0.90, cx: 1430, cy: 409 },
+  { t01: 1.00, cx: 1436, cy: 401 },
 ];
 
 function pathAt(t01: number): { cx: number; cy: number } {
@@ -126,7 +132,7 @@ function pathAt(t01: number): { cx: number; cy: number } {
     const k0 = PATH_KEYFRAMES[i], k1 = PATH_KEYFRAMES[i + 1];
     if (ct <= k1.t01) {
       const raw = (ct - k0.t01) / (k1.t01 - k0.t01);
-      const s = raw * raw * (3 - 2 * raw); // smoothstep easing
+      const s = raw * raw * (3 - 2 * raw);
       return { cx: k0.cx + (k1.cx - k0.cx) * s, cy: k0.cy + (k1.cy - k0.cy) * s };
     }
   }
@@ -134,14 +140,24 @@ function pathAt(t01: number): { cx: number; cy: number } {
   return { cx: last.cx, cy: last.cy };
 }
 
-// Risk level → final marker position on the path
 function finalT01(pct: number): number {
-  if (pct < 30) return 0.90; // STABLE → Expansion zone (upper-right ascent)
-  if (pct < 55) return 0.75; // EXPOSED → between Growth and Expansion
-  return 0.50;                // INSIDE VALLEY / COLLAPSE PROXIMITY → floor
+  if (pct < 30) return 0.90;
+  if (pct < 55) return 0.75;
+  return 0.50;
 }
 function finalSink(pct: number): number {
-  return pct >= 78 ? 40 : 0; // extra depth for collapse proximity
+  return pct >= 78 ? 40 : 0;
+}
+
+// Build SVG polyline points along path segment
+function pathPoints(fromT: number, toT: number, steps = 16): string {
+  const pts: string[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = fromT + (toT - fromT) * (i / steps);
+    const { cx, cy } = pathAt(t);
+    pts.push(`${cx.toFixed(1)},${cy.toFixed(1)}`);
+  }
+  return pts.join(' ');
 }
 
 // ── Searchable Country Combobox ───────────────────────────────────────────────
@@ -198,27 +214,35 @@ function CountryCombobox({ value, onChange, isRTL, error }: {
         <ChevronDown className={cn('size-3.5 text-white/30 flex-shrink-0 transition-transform', open && 'rotate-180')} />
       </div>
       {error && <p className={cn('mt-1.5 text-xs text-ember', isRTL && 'font-arabic text-right')}>{error}</p>}
-      {open && (
-        <ul className="absolute top-full mt-1 left-0 right-0 z-[80] bg-zinc-950 border border-white/10 max-h-52 overflow-y-auto">
-          {filtered.length === 0 ? (
-            <li className={cn('px-4 py-3 text-white/38 text-sm', isRTL && 'text-right font-arabic')}>
-              {isRTL ? 'لا توجد نتائج' : 'No results'}
-            </li>
-          ) : filtered.map(c => (
-            <li
-              key={c.en}
-              onMouseDown={e => { e.preventDefault(); onChange(c.en); setOpen(false); setQuery(''); }}
-              className={cn(
-                'px-4 py-2.5 text-sm text-white/70 hover:bg-white/[0.06] hover:text-white cursor-pointer transition-colors',
-                value === c.en && 'text-ember',
-                isRTL && 'text-right font-arabic',
-              )}
-            >
-              {isRTL ? c.ar : c.en}
-            </li>
-          ))}
-        </ul>
-      )}
+      <AnimatePresence>
+        {open && (
+          <motion.ul
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute top-full mt-1 left-0 right-0 z-[80] bg-zinc-950 border border-white/10 max-h-52 overflow-y-auto"
+          >
+            {filtered.length === 0 ? (
+              <li className={cn('px-4 py-3 text-white/38 text-sm', isRTL && 'text-right font-arabic')}>
+                {isRTL ? 'لا توجد نتائج' : 'No results'}
+              </li>
+            ) : filtered.map(c => (
+              <li
+                key={c.en}
+                onMouseDown={e => { e.preventDefault(); onChange(c.en); setOpen(false); setQuery(''); }}
+                className={cn(
+                  'px-4 py-2.5 text-sm text-white/70 hover:bg-white/[0.06] hover:text-white cursor-pointer transition-colors',
+                  value === c.en && 'text-ember',
+                  isRTL && 'text-right font-arabic',
+                )}
+              >
+                {isRTL ? c.ar : c.en}
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -315,27 +339,42 @@ function Field({ label, required, isRTL, children }: {
 // ── Valley Visual — image hero + transparent marker overlay ──────────────────
 
 function ValleyVisual({
-  markerY, markerCx, tension, isDanger, isActive, isRTL,
+  markerY, markerCx, tension, isDanger, markerActive, isRTL,
+  nodeFlash, startGlow, dispT01,
 }: {
   markerY: number; markerCx: number;
-  tension: number; isDanger: boolean; isActive: boolean; isRTL: boolean;
+  tension: number; isDanger: boolean;
+  markerActive: boolean; isRTL: boolean;
+  nodeFlash: 'safe' | 'risky' | null;
+  startGlow: boolean;
+  dispT01: number;
 }) {
-  const markerFill = isDanger ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)';
-  const dangerHue = isDanger ? '0' : '18';
+  // Marker color driven by flash state → zone
+  const markerFill =
+    startGlow         ? '#ffffff'
+    : nodeFlash === 'safe'  ? 'hsl(142 76% 55%)'
+    : nodeFlash === 'risky' ? 'hsl(0 84% 60%)'
+    : isDanger              ? 'hsl(0 84% 60%)'
+    :                         'hsl(18 92% 55%)';
+
+  const glowColor =
+    startGlow         ? '0 0% 100%'
+    : nodeFlash === 'safe'  ? '142 76% 55%'
+    : nodeFlash === 'risky' ? '0 84% 60%'
+    : isDanger              ? '0 84% 60%'
+    :                         '18 92% 55%';
+
+  // Zone boundaries for path trail
+  const DESCENT_END = 0.45;
+  const FLOOR_END   = 0.55;
 
   return (
-    // Aspect-ratio container: matches valley-bg-ar.png (1672×941 = 56.28%).
-    // Capped at 52vh so the image never fills the full screen on large monitors.
-    // overflow-hidden prevents any stray SVG elements from expanding the container.
     <div
       className="relative w-full overflow-hidden"
-      style={{
-        paddingBottom: 'min(56.28%, 52vh)',
-        minHeight: '180px',
-      }}
+      style={{ paddingBottom: 'min(56.28%, 52vh)', minHeight: '180px' }}
     >
       <div className="absolute inset-0">
-        {/* Hero image — Arabic uses the uploaded image, English uses the SVG replica */}
+        {/* Hero image */}
         <img
           src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
           alt=""
@@ -343,46 +382,105 @@ function ValleyVisual({
           draggable={false}
         />
 
-        {/* Interactive SVG overlay — transparent; only the animated founder marker */}
-        {isActive && (
-          <svg
-            viewBox="0 0 1672 941"
-            className="absolute inset-0 w-full h-full"
-            style={{ overflow: 'visible' }}
+        {/* SVG overlay — always rendered when image is visible */}
+        <svg
+          viewBox="0 0 1672 941"
+          className="absolute inset-0 w-full h-full"
+          style={{ overflow: 'visible' }}
+        >
+          {/* Watermark — low opacity, bottom-right */}
+          <text
+            x="1648" y="928"
+            textAnchor="end"
+            style={{
+              fontFamily: 'Georgia, serif',
+              fontSize: '20px',
+              fill: 'white',
+              opacity: 0.07,
+              letterSpacing: '0.08em',
+            }}
           >
-            <defs>
-              <filter id="vaMarkerGlow" x="-150%" y="-150%" width="400%" height="400%">
-                <feGaussianBlur stdDeviation="10" />
-              </filter>
-            </defs>
+            Khabeer Al Fashal™
+          </text>
 
-            {/* Outer ambient glow */}
-            <circle
-              cx={markerCx} cy={markerY}
-              r={20 + tension * 28}
-              fill={`hsl(${dangerHue} 92% 55% / ${tension * 0.12})`}
-              filter="url(#vaMarkerGlow)"
-              style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease' }}
-            />
-            {/* Inner halo */}
-            <circle
-              cx={markerCx} cy={markerY}
-              r={10 + tension * 14}
-              fill={`hsl(${dangerHue} 92% 55% / ${0.16 + tension * 0.22})`}
-              style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease' }}
-            />
-            {/* Main marker dot — pulsing */}
-            <motion.circle
-              animate={{ cx: markerCx, cy: markerY, r: [9, 12, 9] }}
-              transition={{
-                cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
-                cy: { duration: 0.9,  ease: [0.16, 1, 0.3, 1] },
-                r:  { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
-              }}
-              fill={markerFill}
-            />
-          </svg>
-        )}
+          {/* Path trail overlay — zone-colored segments (rendered when marker is active) */}
+          {markerActive && dispT01 > 0 && (
+            <>
+              {/* Descent zone: orange */}
+              <polyline
+                points={pathPoints(0, Math.min(dispT01, DESCENT_END))}
+                fill="none"
+                stroke="hsl(18 92% 60%)"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.5}
+              />
+              {/* Floor zone: muted gray */}
+              {dispT01 > DESCENT_END && (
+                <polyline
+                  points={pathPoints(DESCENT_END, Math.min(dispT01, FLOOR_END))}
+                  fill="none"
+                  stroke="hsl(0 0% 55%)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity={0.45}
+                />
+              )}
+              {/* Ascent zone: green */}
+              {dispT01 > FLOOR_END && (
+                <polyline
+                  points={pathPoints(FLOOR_END, Math.min(dispT01, 1.0))}
+                  fill="none"
+                  stroke="hsl(107 55% 58%)"
+                  strokeWidth="3.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity={0.5}
+                />
+              )}
+            </>
+          )}
+
+          {/* Marker (only when markerActive) */}
+          {markerActive && (
+            <>
+              <defs>
+                <filter id="vaMarkerGlow" x="-150%" y="-150%" width="400%" height="400%">
+                  <feGaussianBlur stdDeviation="10" />
+                </filter>
+              </defs>
+
+              {/* Outer ambient glow */}
+              <circle
+                cx={markerCx} cy={markerY}
+                r={20 + tension * 28}
+                fill={`hsl(${glowColor} / ${(startGlow || nodeFlash) ? 0.28 : tension * 0.12})`}
+                filter="url(#vaMarkerGlow)"
+                style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease, fill 0.4s ease' }}
+              />
+              {/* Inner halo */}
+              <circle
+                cx={markerCx} cy={markerY}
+                r={10 + tension * 14}
+                fill={`hsl(${glowColor} / ${(startGlow || nodeFlash) ? 0.35 : 0.16 + tension * 0.22})`}
+                style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease, fill 0.4s ease' }}
+              />
+              {/* Main dot — pulsing */}
+              <motion.circle
+                animate={{ cx: markerCx, cy: markerY, r: [9, 12, 9] }}
+                transition={{
+                  cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                  cy: { duration: 0.9,  ease: [0.16, 1, 0.3, 1] },
+                  r:  { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
+                }}
+                fill={markerFill}
+                style={{ transition: 'fill 0.35s ease' }}
+              />
+            </>
+          )}
+        </svg>
       </div>
     </div>
   );
@@ -401,6 +499,11 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [finalAnswers, setFinalAnswers] = useState<Record<string, number>>({});
   const [flashKey, setFlashKey] = useState(0);
+  const [nodeFlash, setNodeFlash] = useState<'safe' | 'risky' | null>(null);
+  const [startGlow, setStartGlow] = useState(false);
+
+  const nodeFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startGlowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Gate form
   const [form, setForm] = useState({
@@ -423,9 +526,19 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
     return () => { document.body.style.overflow = ''; };
   }, []);
 
-  // Scroll to content top when question changes
+  // Clean up flash timers on unmount
   useEffect(() => {
-    if (stage === 'quiz') contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return () => {
+      if (nodeFlashTimer.current) clearTimeout(nodeFlashTimer.current);
+      if (startGlowTimer.current) clearTimeout(startGlowTimer.current);
+    };
+  }, []);
+
+  // Scroll to content top when stage or question changes
+  useEffect(() => {
+    if (stage === 'quiz' || stage === 'warning') {
+      contentRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, [idx, stage]);
 
   // ── Derived values ─────────────────────────────────────────────────────────
@@ -450,19 +563,34 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
     return classify(s, MAX, a.verdicts);
   }, [isDone, finalScore, partialScore, MAX, a.verdicts]);
 
+  // Localised level string for display only (keeps internal verdict.level as English key)
+  const displayVerdict = useMemo(() => ({
+    ...verdict,
+    level: isRTL ? (LEVEL_LABELS_AR[verdict.level] ?? verdict.level) : verdict.level,
+  }), [verdict, isRTL]);
+
   const scorePct = isDone ? finalPct : Math.round((partialScore / MAX) * 100);
 
   const blindSpots = useMemo(() => {
     const src = isDone ? finalAnswers : answers;
     const set = new Set<string>();
-    QUESTIONS.forEach(q => { if ((src[q.id] ?? 0) >= 4 && q.blindSpot) set.add(q.blindSpot); });
+    QUESTIONS.forEach(q => {
+      if ((src[q.id] ?? 0) >= 4) {
+        const label = isRTL ? (q.blindSpotAr ?? q.blindSpot) : q.blindSpot;
+        if (label) set.add(label);
+      }
+    });
     return Array.from(set).slice(0, 4);
-  }, [isDone, finalAnswers, answers]);
+  }, [isDone, finalAnswers, answers, isRTL]);
 
   const riskBucket: 'low' | 'medium' | 'high' =
     verdict.level === 'COLLAPSE PROXIMITY' ? 'high'
     : verdict.level === 'INSIDE THE VALLEY' ? 'medium'
     : 'low';
+
+  // Image visible after gate is passed; marker active only during quiz/analyzing/result
+  const showImage   = stage !== 'gate';
+  const markerActive = stage === 'quiz' || stage === 'analyzing' || stage === 'result';
 
   // ── Keyboard Y/N ───────────────────────────────────────────────────────────
 
@@ -490,20 +618,31 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
     const emailErr = validateEmail(form.email, ar);
     if (emailErr) errs.email = emailErr;
 
-    if (!form.country) errs.country = ar ? 'اختر الدولة' : 'Select a country';
-    if (!form.city)    errs.city    = ar ? 'اختر المدينة' : 'Select a city';
-    if (!form.sector)  errs.sector  = ar ? 'اختر القطاع' : 'Select a sector';
-    if (!form.stageField) errs.stage = ar ? 'اختر المرحلة' : 'Select a stage';
-    if (!form.employees) errs.employees = ar ? 'اختر عدد الموظفين' : 'Select employee count';
+    if (!form.country)    errs.country   = ar ? 'اختر الدولة'         : 'Select a country';
+    if (!form.city)       errs.city      = ar ? 'اختر المدينة'        : 'Select a city';
+    if (!form.sector)     errs.sector    = ar ? 'اختر القطاع'         : 'Select a sector';
+    if (!form.stageField) errs.stage     = ar ? 'اختر المرحلة'        : 'Select a stage';
+    if (!form.employees)  errs.employees = ar ? 'اختر عدد الموظفين'   : 'Select employee count';
 
     if (Object.keys(errs).length) { setFormErrors(errs); return; }
 
     setFormErrors({});
     setFounderName(form.name.trim());
     setFounderEmail(form.email.trim());
+    // Proceed to warning screen before first question
+    setStage('warning');
+  };
+
+  // ── Proceed to quiz after warning ─────────────────────────────────────────
+
+  const proceedToQuiz = () => {
     setStage('quiz');
     setIdx(0);
     setAnswers({});
+    // Brief white start glow on marker entrance
+    setStartGlow(true);
+    if (startGlowTimer.current) clearTimeout(startGlowTimer.current);
+    startGlowTimer.current = setTimeout(() => setStartGlow(false), 1600);
   };
 
   // ── Quiz answer ────────────────────────────────────────────────────────────
@@ -512,6 +651,12 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
     const risky = userSaysYes === q.yesRisky;
     const weight = risky ? 5 : 1;
     if (risky) setFlashKey(k => k + 1);
+
+    // Node flash: green for safe, red for risky
+    if (nodeFlashTimer.current) clearTimeout(nodeFlashTimer.current);
+    setNodeFlash(risky ? 'risky' : 'safe');
+    nodeFlashTimer.current = setTimeout(() => setNodeFlash(null), 900);
+
     const newAnswers = { ...answers, [q.id]: weight };
     setAnswers(newAnswers);
     setTimeout(() => {
@@ -555,21 +700,37 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
   const reset = () => {
     setStage('gate');
     setIdx(0); setAnswers({}); setFinalAnswers({}); setFlashKey(0);
+    setNodeFlash(null); setStartGlow(false);
+    if (nodeFlashTimer.current) clearTimeout(nodeFlashTimer.current);
+    if (startGlowTimer.current) clearTimeout(startGlowTimer.current);
     setForm({ name: '', email: '', company: '', country: '', city: '', sector: '', stageField: '', employees: '' });
     setFounderName(null); setFounderEmail('');
     rootRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Marker is visible on all stages except the gate form
-  const isActive = stage !== 'gate';
+  // ── Warning copy ───────────────────────────────────────────────────────────
+
+  const warningLines = isRTL ? [
+    'أنت الآن على وشك دخول وادي الموت.',
+    'هذا التشخيص لا يبحث عن الإجابات المثالية.',
+    'بل يبحث عن الحقيقة التي تتجنبها.',
+    'كل إجابة غير صادقة ستقود إلى تشخيص أقل دقة.',
+    'أجب كما هي الأمور فعلاً، لا كما تتمنى أن تكون.',
+  ] : [
+    'You are about to enter the Valley of Death.',
+    'This diagnostic is not looking for ideal answers.',
+    'It is looking for the truth you are avoiding.',
+    'Every dishonest answer leads to a less accurate diagnosis.',
+    'Answer as things actually are — not as you wish them to be.',
+  ];
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div ref={rootRef} className="fixed inset-0 z-50 bg-black text-white overflow-y-auto">
 
-      {/* Atmospheric overlays */}
-      {isActive && (
+      {/* Atmospheric overlays — visible when valley image is shown */}
+      {showImage && (
         <>
           <motion.div className="pointer-events-none fixed inset-0"
             style={{ background: 'hsl(0 0% 0%)' }}
@@ -587,6 +748,22 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
               transition={{ duration: 0.7, ease: 'easeOut' }}
               style={{ background: `radial-gradient(ellipse at 50% 55%, hsl(${isDanger ? '0' : '8'} 95% 52% / 0.36), transparent 65%)` }} />
           )}
+          {/* Node flash screen tint */}
+          <AnimatePresence>
+            {nodeFlash && (
+              <motion.div key={nodeFlash}
+                className="pointer-events-none fixed inset-0 z-10"
+                initial={{ opacity: 0.18 }} animate={{ opacity: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.85, ease: 'easeOut' }}
+                style={{
+                  background: nodeFlash === 'safe'
+                    ? 'radial-gradient(ellipse at 50% 55%, hsl(142 76% 35% / 0.25), transparent 60%)'
+                    : 'radial-gradient(ellipse at 50% 55%, hsl(0 84% 40% / 0.30), transparent 60%)',
+                }}
+              />
+            )}
+          </AnimatePresence>
         </>
       )}
 
@@ -599,32 +776,40 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
         </button>
       )}
 
-      {/* Valley Visual — always at top */}
-      <div className="relative z-10 w-full">
-        <ValleyVisual
-          markerY={markerY}
-          markerCx={baseCx}
-          tension={tension}
-          isDanger={isDanger}
-          isActive={isActive}
-          isRTL={isRTL}
-        />
+      {/* Valley Visual — hidden during gate form */}
+      {showImage && (
+        <div className="relative z-10 w-full">
+          <ValleyVisual
+            markerY={markerY}
+            markerCx={baseCx}
+            tension={tension}
+            isDanger={isDanger}
+            markerActive={markerActive}
+            isRTL={isRTL}
+            nodeFlash={nodeFlash}
+            startGlow={startGlow}
+            dispT01={dispT01}
+          />
 
-        {/* Progress strip during quiz */}
-        {stage === 'quiz' && (
-          <div className={cn('flex gap-1.5 px-4 pt-2 pb-1', isRTL && 'flex-row-reverse')}>
-            {QUESTIONS.map((q, i) => (
-              <div key={q.id} className="h-px flex-1 transition-all duration-400"
-                style={{
-                  backgroundColor:
-                    i < idx ? (answers[q.id] >= 4 ? 'hsl(18 92% 55%)' : 'hsl(0 0% 36%)')
-                    : i === idx ? 'hsl(0 0% 65%)'
-                    : 'hsl(0 0% 100% / 0.08)',
-                }} />
-            ))}
-          </div>
-        )}
-      </div>
+          {/* Premium single gradient progress bar */}
+          {stage === 'quiz' && (
+            <div className="px-4 pt-2 pb-0.5">
+              <div className="relative h-px w-full overflow-hidden" style={{ backgroundColor: 'hsl(0 0% 100% / 0.07)' }}>
+                <motion.div
+                  className={cn('absolute inset-y-0 h-full', isRTL ? 'right-0' : 'left-0')}
+                  style={{
+                    background: isDanger
+                      ? `linear-gradient(${isRTL ? '270deg' : '90deg'}, hsl(0 84% 45%), hsl(0 84% 65%))`
+                      : `linear-gradient(${isRTL ? '270deg' : '90deg'}, hsl(18 92% 45%), hsl(18 92% 65%))`,
+                  }}
+                  animate={{ width: `${(idx / total) * 100}%` }}
+                  transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Content */}
       <div ref={contentRef} className="relative z-10 max-w-2xl mx-auto px-6 lg:px-10 py-16 md:py-24 min-h-[55vh] flex flex-col justify-center">
@@ -757,6 +942,52 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
             </motion.div>
           )}
 
+          {/* ─── WARNING ─────────────────────────────────────────────── */}
+          {stage === 'warning' && (
+            <motion.div key="warning"
+              initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              className={cn('max-w-xl', isRTL ? 'text-right' : undefined)}>
+
+              <div className="space-y-7 mb-14">
+                {warningLines.map((line, i) => (
+                  <motion.p
+                    key={i}
+                    initial={{ opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7, delay: 0.15 + i * 0.2, ease: [0.16, 1, 0.3, 1] }}
+                    className={cn(
+                      i === 0
+                        ? 'text-2xl md:text-3xl text-white/95'
+                        : 'text-lg md:text-xl text-white/58',
+                      isRTL ? 'font-arabic leading-[1.85]' : 'font-serif-display leading-snug',
+                      i === 0 && !isRTL && 'italic',
+                    )}
+                  >
+                    {line}
+                  </motion.p>
+                ))}
+              </div>
+
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.3, duration: 0.55 }}
+                onClick={proceedToQuiz}
+                className={cn(
+                  'group inline-flex items-center gap-5 px-8 py-5 border border-white/18 hover:border-white/45 hover:bg-white/[0.03] transition-all duration-500',
+                  isRTL && 'flex-row-reverse',
+                )}
+              >
+                <span className={cn('text-sm text-white/70 group-hover:text-white/90 transition-colors', isRTL ? 'font-arabic' : 'uppercase tracking-[0.25em]')}>
+                  {isRTL ? 'أنا مستعد' : 'I am ready'}
+                </span>
+                <ArrowRight className={cn('size-4 text-white/40 group-hover:text-white/70 group-hover:translate-x-1 transition-all', isRTL && 'rotate-180')} />
+              </motion.button>
+            </motion.div>
+          )}
+
           {/* ─── QUIZ ────────────────────────────────────────────────── */}
           {stage === 'quiz' && (
             <motion.div
@@ -767,7 +998,9 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
               className={isRTL ? 'text-right' : undefined}>
 
               <p className={cn('text-ember mb-8', isRTL ? 'font-arabic text-sm' : 'text-[10px] uppercase tracking-[0.4em]')}>
-                {String(idx + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+                {isRTL
+                  ? `السؤال ${idx + 1} من ${total}`
+                  : `Question ${idx + 1} of ${total}`}
               </p>
 
               <h2 className={cn('tracking-tight mb-14', isRTL ? 'font-arabic font-bold text-2xl md:text-4xl leading-[1.6]' : 'font-serif-display text-3xl md:text-5xl leading-[1.12]')}>
@@ -826,7 +1059,7 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
               transition={{ duration: 0.6 }}>
               <AssessmentResult
-                verdict={verdict}
+                verdict={displayVerdict}
                 scorePct={scorePct}
                 blindSpots={blindSpots}
                 founderName={founderName}
@@ -837,14 +1070,14 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
                 isRTL={isRTL}
                 contactPath={getPath('/contact')}
                 labels={{
-                  diagnosisLabel: a.diagnosisLabel,
-                  shockEyebrow: a.shockEyebrow,
-                  riskScoreLabel: a.riskScoreLabel,
-                  riskLevelLabel: a.riskLevelLabel,
-                  blindSpotsSection: a.blindSpotsSection,
-                  consequencesSection: a.consequencesSection,
-                  recoverySection: a.recoverySection,
-                  nextMoveSection: a.nextMoveSection,
+                  diagnosisLabel:       a.diagnosisLabel,
+                  shockEyebrow:         a.shockEyebrow,
+                  riskScoreLabel:       a.riskScoreLabel,
+                  riskLevelLabel:       a.riskLevelLabel,
+                  blindSpotsSection:    a.blindSpotsSection,
+                  consequencesSection:  a.consequencesSection,
+                  recoverySection:      a.recoverySection,
+                  nextMoveSection:      a.nextMoveSection,
                   restartDiagnosticLabel: a.restartDiagnosticLabel,
                 }}
                 onReset={reset}
