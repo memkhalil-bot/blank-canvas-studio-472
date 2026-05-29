@@ -103,9 +103,10 @@ function classify(score: number, max: number, verdicts: Record<string, { title: 
 }
 
 // ── Bezier / Marker math ──────────────────────────────────────────────────────
-// Path: M 0 80 C 280 80, 460 325, 600 335 C 700 335, 870 80, 1200 70
-// Seg1 t01 0→0.5: P0=(0,80) P1=(280,80) P2=(460,325) P3=(600,335)
-// Seg2 t01 0.5→1: P0=(600,335) P1=(700,335) P2=(870,80) P3=(1200,70)
+// Path calibrated to valley-bg image (viewBox 1456×816):
+// M 155 295 C 380 290, 570 720, 730 720 C 730 400, 1100 355, 1250 355
+// Seg1 t01 0→0.5: P0=(155,295) P1=(380,290) P2=(570,720) P3=(730,720)
+// Seg2 t01 0.5→1: P0=(730,720) P1=(730,400) P2=(1100,355) P3=(1250,355)
 
 function bez(p0: number, p1: number, p2: number, p3: number, t: number) {
   const mt = 1 - t;
@@ -115,26 +116,15 @@ function bez(p0: number, p1: number, p2: number, p3: number, t: number) {
 function curveAt(t01: number): { cx: number; cy: number } {
   if (t01 <= 0.5) {
     const t = t01 * 2;
-    return { cx: bez(0, 280, 460, 600, t), cy: bez(80, 80, 325, 335, t) };
+    return { cx: bez(155, 380, 570, 730, t), cy: bez(295, 290, 720, 720, t) };
   }
   const t = (t01 - 0.5) * 2;
-  return { cx: bez(600, 700, 870, 1200, t), cy: bez(335, 335, 80, 70, t) };
+  return { cx: bez(730, 730, 1100, 1250, t), cy: bez(720, 400, 355, 355, t) };
 }
 
 // Final marker position based on risk %
 function finalT01(pct: number) { return pct < 30 ? 0.85 : pct < 55 ? 0.65 : 0.5; }
-function finalSink(pct: number) { return pct < 30 ? 0 : pct < 55 ? 18 : pct < 78 ? 45 : 68; }
-
-// Pre-computed stage marker positions
-const STAGE_PTS = [0.10, 0.30, 0.50, 0.70, 0.90].map(curveAt);
-const STAGE_LABELS = {
-  en: ['PRE-IDEA', 'SEED', 'VALLEY FLOOR', 'EARLY REVENUE', 'GROWTH'],
-  ar: ['ما قبل التأسيس', 'التأسيس', 'فجوة التمويل', 'النمو المبكر', 'التوسع'],
-};
-const STAGE_SUBS = {
-  en: ['Idea & Research', 'Build & Test', 'Most Dangerous', 'Revenue Begins', 'Scale'],
-  ar: ['فكرة وبحث', 'بناء وتطوير', 'أخطر مرحلة', 'بداية الإيرادات', 'نمو واستقرار'],
-};
+function finalSink(pct: number) { return pct < 30 ? 0 : pct < 55 ? 40 : pct < 78 ? 100 : 150; }
 
 // ── Searchable Country Combobox ───────────────────────────────────────────────
 
@@ -304,222 +294,69 @@ function Field({ label, required, isRTL, children }: {
   );
 }
 
-// ── Cinematic Valley Visual ───────────────────────────────────────────────────
+// ── Valley Visual — image hero + transparent marker overlay ──────────────────
 
 function ValleyVisual({
-  dispT01, markerY, markerCx, tension, isDanger, isActive, isRTL, lang,
+  markerY, markerCx, tension, isDanger, isActive, isRTL,
 }: {
-  dispT01: number; markerY: number; markerCx: number;
-  tension: number; isDanger: boolean; isActive: boolean;
-  isRTL: boolean; lang: string;
+  markerY: number; markerCx: number;
+  tension: number; isDanger: boolean; isActive: boolean; isRTL: boolean;
 }) {
-  const CURVE = 'M 0 80 C 280 80, 460 325, 600 335 C 700 335, 870 80, 1200 70';
   const markerFill = isDanger ? 'hsl(0 84% 60%)' : 'hsl(18 92% 55%)';
   const dangerHue = isDanger ? '0' : '18';
-  const labels = lang === 'ar' ? STAGE_LABELS.ar : STAGE_LABELS.en;
-  const subs = lang === 'ar' ? STAGE_SUBS.ar : STAGE_SUBS.en;
 
   return (
-    <div className="relative w-full" style={{ paddingBottom: '31.25%' }}>
+    <div className="relative w-full" style={{ paddingBottom: '56.02%' }}>
       <div className="absolute inset-0">
-        <svg
-          viewBox="0 0 1200 375"
-          preserveAspectRatio="none"
+        {/* Hero image — Arabic uses the uploaded image, English uses the SVG replica */}
+        <img
+          src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
+          alt=""
           className="absolute inset-0 w-full h-full"
-          style={{ overflow: 'visible' }}
-        >
-          <defs>
-            {/* Atmospheric background */}
-            <linearGradient id="vaBg" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="#020101" />
-              <stop offset="45%"  stopColor="#070402" />
-              <stop offset="100%" stopColor="#030200" />
-            </linearGradient>
-            {/* Ground (below path) */}
-            <linearGradient id="vaGround" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stopColor="#0d0804" />
-              <stop offset="60%"  stopColor="#090603" />
-              <stop offset="100%" stopColor="#040300" />
-            </linearGradient>
-            {/* Path gradient: orange → dark gray → green */}
-            <linearGradient id="vaPathGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"    stopColor="hsl(18 92% 55%)" />
-              <stop offset="40%"   stopColor="hsl(18 92% 55%)" />
-              <stop offset="40.01%" stopColor="hsl(0 0% 28%)" />
-              <stop offset="60%"   stopColor="hsl(0 0% 28%)" />
-              <stop offset="60.01%" stopColor="#7ed957" />
-              <stop offset="100%"  stopColor="#7ed957" />
-            </linearGradient>
-            <linearGradient id="vaGhostGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%"    stopColor="hsl(18 92% 55%)" stopOpacity="0.18" />
-              <stop offset="40%"   stopColor="hsl(18 92% 55%)" stopOpacity="0.18" />
-              <stop offset="40.01%" stopColor="hsl(0 0% 40%)" stopOpacity="0.10" />
-              <stop offset="60%"   stopColor="hsl(0 0% 40%)" stopOpacity="0.10" />
-              <stop offset="60.01%" stopColor="#7ed957" stopOpacity="0.18" />
-              <stop offset="100%"  stopColor="#7ed957" stopOpacity="0.18" />
-            </linearGradient>
-            {/* City/recovery glow on right */}
-            <radialGradient id="vaRightGlow" cx="88%" cy="25%" r="28%">
-              <stop offset="0%"   stopColor="hsl(38 85% 60% / 0.14)" />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
-            {/* Valley danger glow bottom center */}
-            <radialGradient id="vaFloorGlow" cx="50%" cy="92%" r="28%">
-              <stop offset="0%"   stopColor={`hsl(${dangerHue} 92% 45% / ${0.12 + tension * 0.22})`} />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
-            {/* Glow filter for path */}
-            <filter id="vaPathGlow" x="-5%" y="-150%" width="110%" height="400%">
-              <feGaussianBlur stdDeviation="5" result="blur" />
-              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-            </filter>
-            {/* Softer glow for halos */}
-            <filter id="vaHaloGlow" x="-100%" y="-100%" width="300%" height="300%">
-              <feGaussianBlur stdDeviation="8" />
-            </filter>
-          </defs>
+          style={{ objectFit: 'fill' }}
+          draggable={false}
+        />
 
-          {/* Background */}
-          <rect width="1200" height="375" fill="url(#vaBg)" />
+        {/* Interactive SVG overlay — transparent; only the animated founder marker */}
+        {isActive && (
+          <svg
+            viewBox="0 0 1456 816"
+            className="absolute inset-0 w-full h-full"
+            style={{ overflow: 'visible' }}
+          >
+            <defs>
+              <filter id="vaMarkerGlow" x="-150%" y="-150%" width="400%" height="400%">
+                <feGaussianBlur stdDeviation="10" />
+              </filter>
+            </defs>
 
-          {/* Ground mass below the valley path */}
-          <path
-            d={`${CURVE} L 1200 375 L 0 375 Z`}
-            fill="url(#vaGround)"
-          />
-
-          {/* Left cliff face (darker stratum) */}
-          <path
-            d="M 0 375 L 0 72 C 60 70, 125 80, 190 110 C 235 130, 270 160, 300 200 C 320 225, 335 255, 345 280 L 345 375 Z"
-            fill="hsl(20 18% 4%)"
-          />
-          <path
-            d="M 0 375 L 0 68 C 50 66, 105 74, 160 100 C 200 118, 235 145, 265 175 C 285 198, 295 222, 300 248 L 300 375 Z"
-            fill="hsl(20 18% 3%)"
-          />
-          {/* Subtle rock strata lines on left cliff */}
-          <path d="M 0 140 C 55 136, 100 145, 140 165 L 140 170 C 100 150, 55 141, 0 145 Z" fill="hsl(20 14% 7%)" />
-          <path d="M 0 195 C 45 190, 85 200, 118 218 L 118 223 C 85 205, 45 195, 0 200 Z" fill="hsl(20 14% 6%)" />
-
-          {/* Right cliff face */}
-          <path
-            d="M 1200 375 L 1200 62 C 1140 60, 1075 70, 1010 100 C 965 122, 930 150, 905 185 C 885 210, 870 240, 862 268 L 862 375 Z"
-            fill="hsl(20 18% 4%)"
-          />
-          <path
-            d="M 1200 375 L 1200 58 C 1150 56, 1090 66, 1030 95 C 990 115, 958 142, 935 170 C 916 193, 903 218, 898 242 L 898 375 Z"
-            fill="hsl(20 18% 3%)"
-          />
-          {/* Right cliff strata */}
-          <path d="M 1200 135 C 1145 131, 1100 140, 1062 158 L 1062 163 C 1100 145, 1145 136, 1200 140 Z" fill="hsl(20 14% 7%)" />
-          <path d="M 1200 188 C 1150 183, 1110 192, 1076 208 L 1076 213 C 1110 197, 1150 188, 1200 193 Z" fill="hsl(20 14% 6%)" />
-
-          {/* Valley floor atmosphere glow */}
-          <rect width="1200" height="375" fill="url(#vaFloorGlow)" />
-
-          {/* Recovery/city glow on right side */}
-          <rect width="1200" height="375" fill="url(#vaRightGlow)" />
-
-          {/* Zone dividers */}
-          <line x1="480" y1="22" x2="480" y2="360" stroke="hsl(0 0% 100% / 0.06)" strokeWidth="1" strokeDasharray="5 8" />
-          <line x1="720" y1="22" x2="720" y2="360" stroke="hsl(0 0% 100% / 0.06)" strokeWidth="1" strokeDasharray="5 8" />
-
-          {/* Zone labels */}
-          <text x="240" y="22" textAnchor="middle" fontSize="13.5" letterSpacing="2.5"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            fill="hsl(18 92% 60%)" opacity="0.72">
-            {isRTL ? 'النزول' : 'DESCENT'}
-          </text>
-          <text x="600" y="22" textAnchor="middle" fontSize="13.5" letterSpacing="2.5"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            fill="hsl(0 0% 54%)" opacity="0.72">
-            {isRTL ? 'القاع' : 'FLOOR'}
-          </text>
-          <text x="960" y="22" textAnchor="middle" fontSize="13.5" letterSpacing="2.5"
-            fontFamily="ui-sans-serif, system-ui, sans-serif"
-            fill="#7ed957" opacity="0.72">
-            {isRTL ? 'الصعود' : 'ASCENT'}
-          </text>
-
-          {/* Ghost path — always visible, faint */}
-          <path d={CURVE} fill="none" stroke="url(#vaGhostGrad)" strokeWidth="2.5" />
-
-          {/* Active trace — draws in left-to-right */}
-          <path
-            d={CURVE}
-            fill="none"
-            stroke="url(#vaPathGrad)"
-            strokeWidth="4.5"
-            pathLength={100}
-            strokeDasharray={100}
-            strokeDashoffset={100 - (isActive ? dispT01 : 0) * 100}
-            filter="url(#vaPathGlow)"
-            style={{ transition: 'stroke-dashoffset 0.65s cubic-bezier(0.16,1,0.3,1)' }}
-          />
-
-          {/* Stage markers: 5 circles + labels */}
-          {STAGE_PTS.map((pt, i) => (
-            <g key={i}>
-              {/* Halo behind circle */}
-              <circle cx={pt.cx} cy={pt.cy} r={14} fill="hsl(0 0% 100% / 0.06)" />
-              {/* White circle */}
-              <circle cx={pt.cx} cy={pt.cy} r={7} fill="white" opacity="0.82" />
-              {/* Stage name above */}
-              <text
-                x={pt.cx}
-                y={pt.cy - (i === 2 ? 25 : 20)}
-                textAnchor="middle"
-                fontSize={isRTL ? '12' : '11'}
-                fontFamily="ui-sans-serif, system-ui, sans-serif"
-                fill="white" opacity="0.72"
-              >
-                {labels[i]}
-              </text>
-              {/* Subtitle below */}
-              <text
-                x={pt.cx}
-                y={pt.cy + (i === 2 ? 25 : 20)}
-                textAnchor="middle"
-                fontSize={isRTL ? '10' : '9.5'}
-                fontFamily="ui-sans-serif, system-ui, sans-serif"
-                fill="white" opacity="0.35"
-              >
-                {subs[i]}
-              </text>
-            </g>
-          ))}
-
-          {/* Founder marker — only during active stages */}
-          {isActive && (
-            <>
-              {/* Outer glow halo */}
-              <circle
-                cx={markerCx} cy={markerY}
-                r={16 + tension * 20}
-                fill={`hsl(${dangerHue} 92% 55% / ${tension * 0.10})`}
-                filter="url(#vaHaloGlow)"
-                style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease' }}
-              />
-              {/* Inner halo */}
-              <circle
-                cx={markerCx} cy={markerY}
-                r={8 + tension * 10}
-                fill={`hsl(${dangerHue} 92% 55% / ${0.14 + tension * 0.18})`}
-                style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease' }}
-              />
-              {/* Main marker dot */}
-              <motion.circle
-                animate={{ cx: markerCx, cy: markerY, r: [7, 9.5, 7] }}
-                transition={{
-                  cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
-                  cy: { duration: 0.9,  ease: [0.16, 1, 0.3, 1] },
-                  r:  { duration: 2.2,  repeat: Infinity, ease: 'easeInOut' },
-                }}
-                fill={markerFill}
-              />
-            </>
-          )}
-        </svg>
+            {/* Outer ambient glow */}
+            <circle
+              cx={markerCx} cy={markerY}
+              r={20 + tension * 28}
+              fill={`hsl(${dangerHue} 92% 55% / ${tension * 0.12})`}
+              filter="url(#vaMarkerGlow)"
+              style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.9s ease' }}
+            />
+            {/* Inner halo */}
+            <circle
+              cx={markerCx} cy={markerY}
+              r={10 + tension * 14}
+              fill={`hsl(${dangerHue} 92% 55% / ${0.16 + tension * 0.22})`}
+              style={{ transition: 'cx 0.65s cubic-bezier(0.16,1,0.3,1), cy 0.9s cubic-bezier(0.16,1,0.3,1), r 0.65s ease' }}
+            />
+            {/* Main marker dot — pulsing */}
+            <motion.circle
+              animate={{ cx: markerCx, cy: markerY, r: [9, 12, 9] }}
+              transition={{
+                cx: { duration: 0.65, ease: [0.16, 1, 0.3, 1] },
+                cy: { duration: 0.9,  ease: [0.16, 1, 0.3, 1] },
+                r:  { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
+              }}
+              fill={markerFill}
+            />
+          </svg>
+        )}
       </div>
     </div>
   );
@@ -578,9 +415,9 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
   const isDone = stage === 'analyzing' || stage === 'result';
   const quizT01 = total === 0 ? 0 : idx / total;
   const dispT01 = isDone ? finalT01(finalPct) : quizT01;
-  const dispSink = isDone ? finalSink(finalPct) : tension * 42;
+  const dispSink = isDone ? finalSink(finalPct) : tension * 95;
   const { cx: baseCx, cy: baseCy } = curveAt(dispT01);
-  const markerY = Math.min(368, baseCy + dispSink);
+  const markerY = Math.min(800, baseCy + dispSink);
 
   const verdict = useMemo(() => {
     const s = isDone ? finalScore : partialScore;
@@ -738,14 +575,12 @@ export function ValleyAssessment({ onClose }: { onClose?: () => void }) {
       {/* Valley Visual — always at top */}
       <div className="relative z-10 w-full">
         <ValleyVisual
-          dispT01={dispT01}
           markerY={markerY}
           markerCx={baseCx}
           tension={tension}
           isDanger={isDanger}
           isActive={isActive}
           isRTL={isRTL}
-          lang={lang}
         />
 
         {/* Progress strip during quiz */}
