@@ -369,25 +369,23 @@ function ValleyVisual({
   const FLOOR_END   = 0.55;
 
   return (
-    <div
-      className="relative w-full overflow-hidden"
-      style={{ paddingBottom: 'min(56.28%, 52vh)', minHeight: '180px' }}
-    >
-      <div className="absolute inset-0">
-        {/* Hero image */}
-        <img
-          src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          draggable={false}
-        />
+    // Natural aspect-ratio — image drives its own height via h-auto.
+    // No paddingBottom trick, no object-cover, no cropping ever.
+    <div className="relative w-full">
+      {/* Hero image — full image, zero crop */}
+      <img
+        src={isRTL ? '/valley-bg-ar.png' : '/valley-bg-en.svg'}
+        alt=""
+        className="w-full h-auto block"
+        draggable={false}
+      />
 
-        {/* SVG overlay — always rendered when image is visible */}
-        <svg
-          viewBox="0 0 1672 941"
-          className="absolute inset-0 w-full h-full"
-          style={{ overflow: 'visible' }}
-        >
+      {/* SVG overlay — absolutely covers the exact image bounds */}
+      <svg
+        viewBox="0 0 1672 941"
+        className="absolute inset-0 w-full h-full"
+        style={{ overflow: 'visible' }}
+      >
           {/* Watermark — low opacity, bottom-right */}
           <text
             x="1648" y="928"
@@ -481,7 +479,6 @@ function ValleyVisual({
             </>
           )}
         </svg>
-      </div>
     </div>
   );
 }
