@@ -198,7 +198,11 @@ export default function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className={cn('border-t border-white/10 pt-6', isRTL && 'text-right')}
+              className={cn(
+                'border-t border-white/10 pt-6 transition-all duration-300 hover:-translate-y-1',
+                'hover:border-ember/40 hover:[box-shadow:0_0_16px_rgba(255,122,0,0.15)]',
+                isRTL && 'text-right'
+              )}
             >
               <div className={cn(
                 'text-[10px] text-ember mb-5 tabular-nums',
@@ -220,6 +224,44 @@ export default function About() {
               </p>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      {/* ============ CASE SNIPPETS ============ */}
+      <section className="py-20 px-6 lg:px-12 border-t border-white/5">
+        <div className={cn('max-w-4xl mx-auto', isRTL && 'text-right')}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <p className={cn(
+              'text-[10px] uppercase text-white/30 mb-8',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+            )}>
+              {(a as any).caseSnippetsLabel}
+            </p>
+            <div className={cn('flex flex-col gap-3', isRTL && 'items-end')}>
+              {(a as any).caseSnippets.map((s: { id: string; sector: string; stage: string; pattern: string }) => (
+                <div
+                  key={s.id}
+                  className={cn(
+                    'inline-flex flex-wrap items-center gap-3 text-[11px] text-white/35 border border-white/[0.06] px-4 py-2.5',
+                    isRTL ? 'font-arabic flex-row-reverse text-sm' : 'tracking-[0.15em] uppercase'
+                  )}
+                >
+                  <span className="text-ember/60">{s.id}</span>
+                  <span className="text-white/20">·</span>
+                  <span>{s.sector}</span>
+                  <span className="text-white/20">·</span>
+                  <span>{s.stage}</span>
+                  <span className="text-white/20">·</span>
+                  <span className={isRTL ? 'tracking-normal normal-case' : undefined}>{s.pattern}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 
