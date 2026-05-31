@@ -922,17 +922,24 @@ export function ValleyAssessment() {
                 </Field>
               </div>
 
-              <div className={cn('mt-10 flex items-center gap-5', isRTL && 'flex-row-reverse')}>
-                <button
-                  onClick={submitGate}
-                  className={cn('group inline-flex items-center gap-5 px-8 py-5 bg-ember text-black hover:bg-white transition-all duration-500', isRTL && 'flex-row-reverse')}>
-                  <span className={cn('text-sm font-semibold', isRTL ? 'font-arabic' : 'uppercase tracking-[0.25em]')}>
-                    {isRTL ? 'ادخل التشخيص' : 'Enter the Diagnostic'}
-                  </span>
-                  <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
-                </button>
-                <p className={cn('text-white/28', isRTL ? 'font-arabic text-xs leading-[2]' : 'text-[10px] uppercase tracking-[0.22em]')}>
-                  {isRTL ? 'إجاباتك سرية.' : 'Your answers are private.'}
+              <div className={cn('mt-10 flex flex-col gap-5', isRTL && 'items-end')}>
+                <div className={cn('flex items-center gap-5', isRTL && 'flex-row-reverse')}>
+                  <button
+                    onClick={submitGate}
+                    className={cn('group inline-flex items-center gap-5 px-8 py-5 bg-ember text-black hover:bg-white transition-all duration-500', isRTL && 'flex-row-reverse')}>
+                    <span className={cn('text-sm font-semibold', isRTL ? 'font-arabic' : 'uppercase tracking-[0.25em]')}>
+                      {isRTL ? 'ادخل التشخيص' : 'Enter the Diagnostic'}
+                    </span>
+                    <ArrowRight className={cn('size-4 group-hover:translate-x-1 transition-transform', isRTL && 'rotate-180')} />
+                  </button>
+                </div>
+                <p className={cn(
+                  'text-white/35',
+                  isRTL ? 'font-arabic text-xs leading-[2] text-right' : 'text-[10px] uppercase tracking-[0.22em]'
+                )}>
+                  {isRTL
+                    ? 'سرية كاملة • لا مشاركة للبيانات • لا تواصل مع المستثمرين'
+                    : '100% Confidential • No investor disclosure • No spam'}
                 </p>
               </div>
             </motion.div>
