@@ -106,8 +106,9 @@ export default function About() {
       </section>
 
       {/* ============ CHAPTERS ============ */}
-      <section className="relative py-32 md:py-48 px-6 lg:px-12">
-        <div className="max-w-4xl mx-auto space-y-32 md:space-y-48">
+      <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(18_92%_55%/0.04),transparent_70%)] pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto space-y-32 md:space-y-48">
           {a.chapters.map((c) => (
             <motion.article
               key={c.eyebrow}
@@ -118,8 +119,8 @@ export default function About() {
               className={cn(
                 'grid gap-6 md:gap-12',
                 isRTL
-                  ? 'md:grid-cols-[1fr_80px] text-right'
-                  : 'md:grid-cols-[80px_1fr]'
+                  ? 'md:grid-cols-[1fr_64px] text-right'
+                  : 'md:grid-cols-[64px_1fr]'
               )}
             >
               <div className={cn('md:pt-4', isRTL && 'order-last md:order-first')}>
@@ -131,7 +132,7 @@ export default function About() {
                 </div>
                 <div className={cn('mt-2 h-px w-12 bg-white/20', isRTL && 'mr-auto')} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className={cn(
                   'tracking-tight mb-8 leading-[1.05]',
                   isRTL
@@ -141,7 +142,7 @@ export default function About() {
                   {c.title}
                 </h2>
                 <p className={cn(
-                  'text-lg md:text-xl text-white/60 font-light max-w-2xl',
+                  'text-lg md:text-xl text-white/60 font-light w-full min-w-0 break-words',
                   isRTL ? 'leading-[2.2]' : 'leading-[1.8]'
                 )}>
                   {c.body}
@@ -199,7 +200,12 @@ export default function About() {
               transition={{ duration: 0.8 }}
               className={cn('border-t border-white/10 pt-6', isRTL && 'text-right')}
             >
-              <div className="text-xs tracking-[0.3em] text-ember mb-4">{p.n}</div>
+              <div className={cn(
+                'text-[10px] text-ember mb-5 tabular-nums',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.35em] uppercase font-medium'
+              )}>
+                {p.n}
+              </div>
               <h3 className={cn(
                 'text-2xl mb-3',
                 isRTL ? 'font-arabic font-bold' : 'font-serif-display'

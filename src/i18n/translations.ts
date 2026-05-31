@@ -92,6 +92,8 @@ interface LangStrings {
     closingBody: string;
     closingSub: string;
     ctaButton: string;
+    caseSnippets: { id: string; sector: string; stage: string; pattern: string }[];
+    caseSnippetsLabel: string;
   };
 
   valley: {
@@ -169,6 +171,11 @@ interface LangStrings {
     successHeading: string;
     successBody: string;
     closingQuote: string;
+    sessionInfo: string;
+    situationTagsLabel: string;
+    situationTags: string[];
+    successHeadingFull: string;
+    successBodyFull: string;
   };
 
   assessment: {
@@ -403,6 +410,11 @@ const en: LangStrings = {
     closingBody: 'If you\'ve read this far, something already feels off inside your company.',
     closingSub: 'Trust that feeling. Most founders meet me six months too late.',
     ctaButton: 'Request an Autopsy',
+    caseSnippets: [
+      { id: '#042', sector: 'Fintech', stage: 'Seed', pattern: 'Founder Misalignment · Cash Burn' },
+      { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'Green Dashboard Collapse · Leadership Isolation' },
+    ],
+    caseSnippetsLabel: 'From the case files',
   },
 
   valley: {
@@ -508,6 +520,19 @@ const en: LangStrings = {
     successBody:
       'I read every submission personally. If your case fits, you\'ll hear from me directly.',
     closingQuote: '"Save it before it becomes another case study."',
+    sessionInfo: 'Private diagnostic session · 60 minutes · focused on your highest-risk failure patterns',
+    situationTagsLabel: 'Quick situation (optional — select all that apply)',
+    situationTags: [
+      'Co-founder Dispute',
+      'Severe Cash Burn',
+      'Product-Market Fit Problem',
+      'Funding Risk',
+      'Team Breakdown',
+      'Growth Without Revenue',
+      'Other',
+    ],
+    successHeadingFull: 'Your request has been secured.',
+    successBodyFull: 'We will review the case file and return with the next step. This may take 24–48 hours.',
   },
 
   assessment: {
@@ -916,6 +941,11 @@ const ar: LangStrings = {
     closingBody: 'إن وصلتَ إلى هنا، فشيء ما لا يبدو صحيحاً في شركتك بالفعل.',
     closingSub: 'ثق بهذا الإحساس. معظم المؤسسين يلتقونني متأخرين ستة أشهر.',
     ctaButton: 'اطلب تشريحاً',
+    caseSnippets: [
+      { id: '#042', sector: 'تقنية مالية', stage: 'Seed', pattern: 'خلاف الشركاء · حرق السيولة' },
+      { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'انهيار المؤشرات الخضراء · عزلة القيادة' },
+    ],
+    caseSnippetsLabel: 'من ملفات القضايا',
   },
 
   valley: {
@@ -1020,6 +1050,19 @@ const ar: LangStrings = {
     successBody:
       'أقرأ كل طلب بنفسي. إن ناسبتك الجلسة، ستسمع مني مباشرة.',
     closingQuote: '"أنقذها قبل أن تصبح دراسة حالة أخرى."',
+    sessionInfo: 'جلسة تشخيص خاصة · 60 دقيقة · تركّز على أخطر أنماط الفشل في شركتك',
+    situationTagsLabel: 'وصف سريع للوضع (اختياري — اختر ما ينطبق)',
+    situationTags: [
+      'خلاف بين الشركاء المؤسسين',
+      'حرق نقدي حاد',
+      'مشكلة التوافق مع السوق',
+      'مخاطر التمويل',
+      'انهيار الفريق',
+      'نمو بلا إيرادات حقيقية',
+      'أخرى',
+    ],
+    successHeadingFull: 'تم تأمين طلبك.',
+    successBodyFull: 'سنراجع ملف الحالة ونعود إليك بالخطوة التالية خلال 24–48 ساعة.',
   },
 
   assessment: {
