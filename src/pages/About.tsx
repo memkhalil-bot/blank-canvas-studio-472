@@ -106,8 +106,9 @@ export default function About() {
       </section>
 
       {/* ============ CHAPTERS ============ */}
-      <section className="relative py-32 md:py-48 px-6 lg:px-12">
-        <div className="max-w-4xl mx-auto space-y-32 md:space-y-48">
+      <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,hsl(18_92%_55%/0.04),transparent_70%)] pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto space-y-32 md:space-y-48">
           {a.chapters.map((c) => (
             <motion.article
               key={c.eyebrow}
@@ -118,8 +119,8 @@ export default function About() {
               className={cn(
                 'grid gap-6 md:gap-12',
                 isRTL
-                  ? 'md:grid-cols-[1fr_80px] text-right'
-                  : 'md:grid-cols-[80px_1fr]'
+                  ? 'md:grid-cols-[1fr_64px] text-right'
+                  : 'md:grid-cols-[64px_1fr]'
               )}
             >
               <div className={cn('md:pt-4', isRTL && 'order-last md:order-first')}>
@@ -131,7 +132,7 @@ export default function About() {
                 </div>
                 <div className={cn('mt-2 h-px w-12 bg-white/20', isRTL && 'mr-auto')} />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h2 className={cn(
                   'tracking-tight mb-8 leading-[1.05]',
                   isRTL
@@ -141,7 +142,7 @@ export default function About() {
                   {c.title}
                 </h2>
                 <p className={cn(
-                  'text-lg md:text-xl text-white/60 font-light max-w-2xl',
+                  'text-lg md:text-xl text-white/60 font-light w-full min-w-0 break-words',
                   isRTL ? 'leading-[2.2]' : 'leading-[1.8]'
                 )}>
                   {c.body}
@@ -197,9 +198,18 @@ export default function About() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8 }}
-              className={cn('border-t border-white/10 pt-6', isRTL && 'text-right')}
+              className={cn(
+                'border-t border-white/10 pt-6 transition-all duration-300 hover:-translate-y-1',
+                'hover:border-ember/40 hover:[box-shadow:0_0_16px_rgba(255,122,0,0.15)]',
+                isRTL && 'text-right'
+              )}
             >
-              <div className="text-xs tracking-[0.3em] text-ember mb-4">{p.n}</div>
+              <div className={cn(
+                'text-[10px] text-ember mb-5 tabular-nums',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.35em] uppercase font-medium'
+              )}>
+                {p.n}
+              </div>
               <h3 className={cn(
                 'text-2xl mb-3',
                 isRTL ? 'font-arabic font-bold' : 'font-serif-display'
@@ -214,6 +224,44 @@ export default function About() {
               </p>
             </motion.div>
           ))}
+        </div>
+      </section>
+
+      {/* ============ CASE SNIPPETS ============ */}
+      <section className="py-20 px-6 lg:px-12 border-t border-white/5">
+        <div className={cn('max-w-4xl mx-auto', isRTL && 'text-right')}>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <p className={cn(
+              'text-[10px] uppercase text-white/30 mb-8',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+            )}>
+              {(a as any).caseSnippetsLabel}
+            </p>
+            <div className={cn('flex flex-col gap-3', isRTL && 'items-end')}>
+              {(a as any).caseSnippets.map((s: { id: string; sector: string; stage: string; pattern: string }) => (
+                <div
+                  key={s.id}
+                  className={cn(
+                    'inline-flex flex-wrap items-center gap-3 text-[11px] text-white/35 border border-white/[0.06] px-4 py-2.5',
+                    isRTL ? 'font-arabic flex-row-reverse text-sm' : 'tracking-[0.15em] uppercase'
+                  )}
+                >
+                  <span className="text-ember/60">{s.id}</span>
+                  <span className="text-white/20">·</span>
+                  <span>{s.sector}</span>
+                  <span className="text-white/20">·</span>
+                  <span>{s.stage}</span>
+                  <span className="text-white/20">·</span>
+                  <span className={isRTL ? 'tracking-normal normal-case' : undefined}>{s.pattern}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
         </div>
       </section>
 

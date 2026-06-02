@@ -29,6 +29,7 @@ interface LangStrings {
     valley: string;
     session: string;
     langToggle: string; // "AR" or "EN"
+    methodology: string;
   };
 
   home: {
@@ -63,7 +64,7 @@ interface LangStrings {
     pullQuote2: string;
     pullQuote3: string;
     fieldNote: string;
-    stats: { k: string; v: string }[];
+    stats: { k: string; v: string; i?: string }[];
     ctaLabel: string;
     ctaHeading1: string;
     ctaHeading2: string;
@@ -92,6 +93,8 @@ interface LangStrings {
     closingBody: string;
     closingSub: string;
     ctaButton: string;
+    caseSnippets: { id: string; sector: string; stage: string; pattern: string }[];
+    caseSnippetsLabel: string;
   };
 
   valley: {
@@ -169,6 +172,11 @@ interface LangStrings {
     successHeading: string;
     successBody: string;
     closingQuote: string;
+    sessionInfo: string;
+    situationTagsLabel: string;
+    situationTags: string[];
+    successHeadingFull: string;
+    successBodyFull: string;
   };
 
   assessment: {
@@ -268,6 +276,7 @@ const en: LangStrings = {
     valley: 'Valley of Death',
     session: 'Session',
     langToggle: 'AR',
+    methodology: 'Methodology',
   },
 
   home: {
@@ -330,10 +339,10 @@ const en: LangStrings = {
     pullQuote3: 'the company is already gone.',
     fieldNote: '— Field Note · 2023 · Riyadh',
     stats: [
-      { k: '317', v: 'Post-mortems studied' },
-      { k: '12',  v: 'Recurring failure patterns' },
-      { k: '6mo', v: 'Average warning window ignored' },
-      { k: '01',  v: 'Honest conversation required' },
+      { k: '317', v: 'Post-mortems studied', i: 'An archive of 317 structured startup post-mortems, analyzed for decision patterns and failure triggers across 12 years.' },
+      { k: '12',  v: 'Recurring failure patterns', i: 'Twelve behavioral patterns that appear in over 80% of documented collapses — long before the financials confirm it.' },
+      { k: '6mo', v: 'Average warning window ignored', i: 'The average founder ignores the first clear warning signals for six months before the company enters crisis.' },
+      { k: '01',  v: 'Honest conversation required', i: 'One honest conversation — with the right person, at the right moment — changes the trajectory more than any strategy document.' },
     ],
     ctaLabel:   'Intake Open · Limited Cases',
     ctaHeading1: 'Something already',
@@ -403,6 +412,11 @@ const en: LangStrings = {
     closingBody: 'If you\'ve read this far, something already feels off inside your company.',
     closingSub: 'Trust that feeling. Most founders meet me six months too late.',
     ctaButton: 'Request an Autopsy',
+    caseSnippets: [
+      { id: '#042', sector: 'Fintech', stage: 'Seed', pattern: 'Founder Misalignment · Cash Burn' },
+      { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'Green Dashboard Collapse · Leadership Isolation' },
+    ],
+    caseSnippetsLabel: 'From the case files',
   },
 
   valley: {
@@ -508,6 +522,19 @@ const en: LangStrings = {
     successBody:
       'I read every submission personally. If your case fits, you\'ll hear from me directly.',
     closingQuote: '"Save it before it becomes another case study."',
+    sessionInfo: 'Private diagnostic session · 60 minutes · focused on your highest-risk failure patterns',
+    situationTagsLabel: 'Quick situation (optional — select all that apply)',
+    situationTags: [
+      'Co-founder Dispute',
+      'Severe Cash Burn',
+      'Product-Market Fit Problem',
+      'Funding Risk',
+      'Team Breakdown',
+      'Growth Without Revenue',
+      'Other',
+    ],
+    successHeadingFull: 'Your request has been secured.',
+    successBodyFull: 'We will review the case file and return with the next step. This may take 24–48 hours.',
   },
 
   assessment: {
@@ -781,6 +808,7 @@ const ar: LangStrings = {
     valley: 'وادي الموت',
     session: 'الجلسة',
     langToggle: 'EN',
+    methodology: 'المنهجية',
   },
 
   home: {
@@ -843,10 +871,10 @@ const ar: LangStrings = {
     pullQuote3: 'تكون الشركة قد رحلت.',
     fieldNote: '— ملاحظة ميدانية · 2023 · الرياض',
     stats: [
-      { k: '317', v: 'تشريح دُرس' },
-      { k: '12',  v: 'نمط فشل متكرر' },
-      { k: '٦ أشهر', v: 'متوسط مدة تجاهل التحذير' },
-      { k: '01',  v: 'محادثة صادقة واحدة كافية' },
+      { k: '317', v: 'تشريح دُرس', i: 'أرشيف من 317 تشريحاً منظماً للشركات الناشئة، حُلِّلت للكشف عن أنماط القرار ومحفّزات الفشل عبر 12 عاماً.' },
+      { k: '12',  v: 'نمط فشل متكرر', i: 'اثنا عشر نمطاً سلوكياً تظهر في أكثر من 80% من حالات الانهيار الموثقة — قبل وقت طويل من تأكيد الأرقام المالية ذلك.' },
+      { k: '٦ أشهر', v: 'متوسط مدة تجاهل التحذير', i: 'يتجاهل المؤسس في المتوسط أولى الإشارات التحذيرية الواضحة لستة أشهر قبل أن تدخل الشركة في أزمة.' },
+      { k: '01',  v: 'محادثة صادقة واحدة كافية', i: 'محادثة صادقة واحدة — مع الشخص المناسب، في اللحظة المناسبة — تغيّر المسار أكثر من أي وثيقة استراتيجية.' },
     ],
     ctaLabel:   'مقاعد مفتوحة · حالات محدودة',
     ctaHeading1: 'شيء ما',
@@ -916,6 +944,11 @@ const ar: LangStrings = {
     closingBody: 'إن وصلتَ إلى هنا، فشيء ما لا يبدو صحيحاً في شركتك بالفعل.',
     closingSub: 'ثق بهذا الإحساس. معظم المؤسسين يلتقونني متأخرين ستة أشهر.',
     ctaButton: 'اطلب تشريحاً',
+    caseSnippets: [
+      { id: '#042', sector: 'تقنية مالية', stage: 'Seed', pattern: 'خلاف الشركاء · حرق السيولة' },
+      { id: '#117', sector: 'SaaS', stage: 'Series A', pattern: 'انهيار المؤشرات الخضراء · عزلة القيادة' },
+    ],
+    caseSnippetsLabel: 'من ملفات القضايا',
   },
 
   valley: {
@@ -1020,6 +1053,19 @@ const ar: LangStrings = {
     successBody:
       'أقرأ كل طلب بنفسي. إن ناسبتك الجلسة، ستسمع مني مباشرة.',
     closingQuote: '"أنقذها قبل أن تصبح دراسة حالة أخرى."',
+    sessionInfo: 'جلسة تشخيص خاصة · 60 دقيقة · تركّز على أخطر أنماط الفشل في شركتك',
+    situationTagsLabel: 'وصف سريع للوضع (اختياري — اختر ما ينطبق)',
+    situationTags: [
+      'خلاف بين الشركاء المؤسسين',
+      'حرق نقدي حاد',
+      'مشكلة التوافق مع السوق',
+      'مخاطر التمويل',
+      'انهيار الفريق',
+      'نمو بلا إيرادات حقيقية',
+      'أخرى',
+    ],
+    successHeadingFull: 'تم تأمين طلبك.',
+    successBodyFull: 'سنراجع ملف الحالة ونعود إليك بالخطوة التالية خلال 24–48 ساعة.',
   },
 
   assessment: {

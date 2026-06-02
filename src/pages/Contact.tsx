@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { ArrowUpRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -26,6 +26,11 @@ export default function Contact() {
   const isRTL = lang === 'ar';
 
   const [done, setDone] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const toggleTag = (tag: string) =>
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
   const {
     register,
     handleSubmit,
@@ -45,7 +50,7 @@ export default function Contact() {
   };
 
   const inputClass = cn(
-    'w-full bg-transparent border-b border-white/20 focus:border-ember outline-none py-3 text-lg font-light transition-colors',
+    'w-full bg-transparent border-b border-white/20 focus:border-ember outline-none py-3 text-lg font-light transition-colors duration-200 min-h-[48px] placeholder:text-white/25',
     isRTL && 'font-arabic text-right'
   );
 
@@ -96,15 +101,22 @@ export default function Contact() {
                 {c.heroArabicSub}
               </p>
             )}
+            <p className={cn(
+              'mt-8 text-[10px] text-white/35 border-t border-white/[0.06] pt-6',
+              isRTL ? 'font-arabic text-sm leading-[2]' : 'uppercase tracking-[0.28em]'
+            )}>
+              {c.sessionInfo}
+            </p>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-            className="order-1 lg:order-2 relative"
+            className={cn('relative', isRTL ? 'order-2 lg:order-1' : 'order-1 lg:order-2')}
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(18_92%_55%/0.18),transparent_70%)] blur-2xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(18_92%_55%/0.22),transparent_65%)] blur-3xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,hsl(18_92%_55%/0.10),transparent_60%)] blur-xl" />
             <div className="relative w-full max-w-lg mx-auto">
               <div className="pointer-events-none absolute left-[42%] top-[14%] -translate-x-1/2 -translate-y-1/2 z-0">
                 {[0, 1, 2].map((i) => (
@@ -160,20 +172,39 @@ export default function Contact() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="border border-ember/30 bg-ember/5 p-12 text-center"
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className={cn('py-16', isRTL && 'text-right')}
             >
-              <CheckCircle2 className="size-12 mx-auto text-ember mb-6" />
-              <h3 className={cn(
-                'text-3xl mb-3',
-                isRTL ? 'font-arabic font-bold' : 'font-serif-display'
+              <motion.div
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className={cn('h-px w-16 bg-ember mb-12', isRTL && 'mr-auto')}
+                style={{ transformOrigin: isRTL ? 'right' : 'left' }}
+              />
+              <p className={cn(
+                'text-[10px] uppercase text-ember mb-8',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.45em]'
               )}>
-                {c.successHeading}
+                {isRTL ? 'تم الاستلام' : 'Request received'}
+              </p>
+              <h3 className={cn(
+                'text-4xl md:text-5xl tracking-tight mb-6 text-white',
+                isRTL ? 'font-arabic font-bold leading-[1.5]' : 'font-serif-display'
+              )}>
+                {c.successHeadingFull}
               </h3>
               <p className={cn(
-                'text-white/60 font-light max-w-md mx-auto leading-relaxed',
-                isRTL && 'font-arabic leading-[2]'
+                'text-lg text-white/50 font-light max-w-lg leading-relaxed',
+                isRTL ? 'font-arabic leading-[2] ml-auto' : undefined
               )}>
-                {c.successBody}
+                {c.successBodyFull}
+              </p>
+              <p className={cn(
+                'mt-10 text-[10px] text-white/20',
+                isRTL ? 'font-arabic tracking-normal text-xs' : 'uppercase tracking-[0.35em]'
+              )}>
+                {isRTL ? 'لا تُشارَك تفاصيل طلبك مع أي طرف.' : 'Your case details are not shared with any third party.'}
               </p>
             </motion.div>
           ) : (
@@ -204,6 +235,7 @@ export default function Contact() {
                 <Field label={c.fieldName} error={errors.name?.message} isRTL={isRTL}>
                   <input
                     {...register('name')}
+                    dir={isRTL ? 'rtl' : 'ltr'}
                     className={inputClass}
                     placeholder={c.fieldNamePlaceholder}
                   />
@@ -222,6 +254,7 @@ export default function Contact() {
               <Field label={c.fieldCompany} isRTL={isRTL}>
                 <input
                   {...register('company')}
+                  dir={isRTL ? 'rtl' : 'ltr'}
                   className={inputClass}
                   placeholder={c.fieldCompanyPlaceholder}
                 />
@@ -257,9 +290,32 @@ export default function Contact() {
                 error={errors.context?.message}
                 isRTL={isRTL}
               >
+                {/* Situation tags */}
+                <div className={cn('flex flex-wrap gap-2 mb-4 pt-2', isRTL && 'justify-end')}>
+                  {c.situationTags.map((tag: string) => {
+                    const active = selectedTags.includes(tag);
+                    return (
+                      <button
+                        type="button"
+                        key={tag}
+                        onClick={() => toggleTag(tag)}
+                        className={cn(
+                          'px-3 py-1.5 text-[11px] border transition-all duration-200',
+                          isRTL ? 'font-arabic text-sm' : 'uppercase tracking-[0.12em]',
+                          active
+                            ? 'border-ember/60 bg-ember/10 text-ember'
+                            : 'border-white/12 text-white/40 hover:border-white/30 hover:text-white/65'
+                        )}
+                      >
+                        {tag}
+                      </button>
+                    );
+                  })}
+                </div>
                 <textarea
                   {...register('context')}
                   rows={6}
+                  dir={isRTL ? 'rtl' : 'ltr'}
                   className={cn(inputClass, 'resize-none')}
                   placeholder={c.fieldContextPlaceholder}
                 />
