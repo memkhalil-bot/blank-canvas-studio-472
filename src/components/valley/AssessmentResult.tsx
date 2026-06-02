@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { FirstAidKit } from '@/components/assessment/FirstAidKit';
+import { DiagnosticReport } from '@/components/report/DiagnosticReport';
 
 /**
  * AssessmentResult — cinematic diagnosis. One revelation per section.
@@ -425,6 +427,23 @@ export function AssessmentResult({
           </div>
         )}
       </motion.section>
+
+      {/* ── FIRST AID KIT ───────────────────────────────────────── */}
+      <FirstAidKit dominantBlindSpot={dominantBlindSpot} isRTL={isRTL} />
+
+      {/* ── DIAGNOSTIC REPORT ───────────────────────────────────── */}
+      <DiagnosticReport
+        verdict={verdict}
+        scorePct={scorePct}
+        blindSpots={blindSpots}
+        dominantBlindSpot={dominantBlindSpot}
+        riskBucket={riskBucket}
+        consequence={consequence}
+        recovery={recovery}
+        founderName={founderName}
+        isRTL={isRTL}
+        accentHsl={accentHsl}
+      />
 
       {/* ── RESTART ─────────────────────────────────────────────── */}
       <div className="flex justify-center pt-20 pb-6">

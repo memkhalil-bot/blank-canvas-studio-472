@@ -25,6 +25,7 @@ export function Header() {
     { name: t.nav.caseFile,    basePath: '/about' },
     { name: t.nav.valley,      basePath: '/valley-of-death' },
     { name: t.nav.methodology, basePath: '/methodology' },
+    { name: t.nav.caseFiles,   basePath: '/case-files' },
     { name: t.nav.session,     basePath: '/contact' },
   ];
 

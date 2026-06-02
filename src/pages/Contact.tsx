@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,10 +23,10 @@ type FormValues = z.infer<typeof schema>;
 export default function Contact() {
   const t = useT();
   const c = t.contact;
-  const { lang } = useLanguage();
+  const { lang, getPath } = useLanguage();
   const isRTL = lang === 'ar';
+  const navigate = useNavigate();
 
-  const [done, setDone] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const toggleTag = (tag: string) =>
     setSelectedTags((prev) =>
@@ -42,11 +43,10 @@ export default function Contact() {
 
   const selectedStage = watch('stage');
 
-  const onSubmit = async (_data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     await new Promise((r) => setTimeout(r, 900));
-    setDone(true);
     reset();
-    setTimeout(() => setDone(false), 6000);
+    navigate(getPath('/thank-you'), { state: { name: data.name } });
   };
 
   const inputClass = cn(
@@ -168,54 +168,14 @@ export default function Contact() {
       {/* FORM */}
       <section className="px-6 lg:px-12 py-24 md:py-32">
         <div className="max-w-3xl mx-auto">
-          {done ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className={cn('py-16', isRTL && 'text-right')}
-            >
-              <motion.div
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className={cn('h-px w-16 bg-ember mb-12', isRTL && 'mr-auto')}
-                style={{ transformOrigin: isRTL ? 'right' : 'left' }}
-              />
-              <p className={cn(
-                'text-[10px] uppercase text-ember mb-8',
-                isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.45em]'
-              )}>
-                {isRTL ? 'تم الاستلام' : 'Request received'}
-              </p>
-              <h3 className={cn(
-                'text-4xl md:text-5xl tracking-tight mb-6 text-white',
-                isRTL ? 'font-arabic font-bold leading-[1.5]' : 'font-serif-display'
-              )}>
-                {c.successHeadingFull}
-              </h3>
-              <p className={cn(
-                'text-lg text-white/50 font-light max-w-lg leading-relaxed',
-                isRTL ? 'font-arabic leading-[2] ml-auto' : undefined
-              )}>
-                {c.successBodyFull}
-              </p>
-              <p className={cn(
-                'mt-10 text-[10px] text-white/20',
-                isRTL ? 'font-arabic tracking-normal text-xs' : 'uppercase tracking-[0.35em]'
-              )}>
-                {isRTL ? 'لا تُشارَك تفاصيل طلبك مع أي طرف.' : 'Your case details are not shared with any third party.'}
-              </p>
-            </motion.div>
-          ) : (
-            <motion.form
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              onSubmit={handleSubmit(onSubmit)}
-              className="space-y-10"
-            >
+          <motion.form
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-10"
+          >
               <div className={cn('mb-12', isRTL && 'text-right')}>
                 <p className={cn(
                   'text-xs uppercase text-ember mb-4',
@@ -348,7 +308,6 @@ export default function Contact() {
                 </p>
               </div>
             </motion.form>
-          )}
         </div>
       </section>
 

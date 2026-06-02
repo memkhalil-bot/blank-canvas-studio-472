@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight, ArrowRight } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { FounderTestimonials } from '@/components/testimonials/FounderTestimonials';
+import { EmergencyBriefings } from '@/components/newsletter/EmergencyBriefings';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -479,6 +480,9 @@ export default function Home() {
           </Link>
         </motion.div>
       </section>
+
+      {/* ============ EMERGENCY BRIEFINGS NEWSLETTER ============ */}
+      <EmergencyBriefings isRTL={isRTL} />
     </div>
   );
 }

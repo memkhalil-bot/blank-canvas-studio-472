@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import portrait from '@/assets/khabir-portrait.png';
+import { EmergencyBriefings } from '@/components/newsletter/EmergencyBriefings';
 import { useT } from '@/hooks/useT';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -264,6 +265,9 @@ export default function About() {
           </motion.div>
         </div>
       </section>
+
+      {/* ============ EMERGENCY BRIEFINGS NEWSLETTER ============ */}
+      <EmergencyBriefings isRTL={isRTL} />
 
       {/* ============ CLOSING + CTA ============ */}
       <section className="relative py-32 md:py-48 px-6 lg:px-12 border-t border-white/5">

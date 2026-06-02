@@ -21,6 +21,8 @@ const About         = lazy(() => import("./pages/About"));
 const Contact       = lazy(() => import("./pages/Contact"));
 const ValleyOfDeath = lazy(() => import("./pages/ValleyOfDeath"));
 const Methodology   = lazy(() => import("./pages/Methodology"));
+const CaseFiles     = lazy(() => import("./pages/CaseFiles"));
+const ThankYou      = lazy(() => import("./pages/ThankYou"));
 const NotFound      = lazy(() => import("./pages/NotFound"));
 
 // ── Preview (temporary — remove after visual approval) ────────────────────────
@@ -66,6 +68,8 @@ function AnimatedRoutes() {
         <Route path="/en/valley-of-death" element={<PageTransition><ValleyOfDeath /></PageTransition>} />
         <Route path="/en/contact"         element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/en/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
+        <Route path="/en/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
+        <Route path="/en/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
 
         {/* Arabic routes — same components, language derived from URL prefix */}
         <Route path="/ar"                 element={<PageTransition><Home /></PageTransition>} />
@@ -73,6 +77,8 @@ function AnimatedRoutes() {
         <Route path="/ar/valley-of-death" element={<PageTransition><ValleyOfDeath /></PageTransition>} />
         <Route path="/ar/contact"         element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/ar/methodology"     element={<PageTransition><Methodology /></PageTransition>} />
+        <Route path="/ar/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
+        <Route path="/ar/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
 
         {/* Preview route — remove after visual approval */}
         <Route path="/result-preview" element={<Suspense fallback={<LoadingFallback />}><ResultPreview /></Suspense>} />
