@@ -320,9 +320,9 @@ const en: LangStrings = {
     metaTitle: 'خبير الفشل — Startup Failure Intelligence',
     metaDesc:
       'A forensic study of why startups die. No coaching. No clichés. Founder psychology, decision autopsies, and pattern intelligence from hundreds of post-mortems.',
-    stripLeft: 'Case Files · Open',
-    stripCenter: 'Riyadh · 24.7136° N',
-    stripRight: 'v.001 · 2026',
+    stripLeft: '',
+    stripCenter: '',
+    stripRight: '',
     tagline: 'Startup Failure Intelligence',
     heroLine1: "We don't teach",
     heroLine2: 'you how to',
@@ -374,7 +374,7 @@ const en: LangStrings = {
     pullQuote1: 'By the time the numbers',
     pullQuote2: 'tell the truth,',
     pullQuote3: 'the company is already gone.',
-    fieldNote: '— Field Note · 2023 · Riyadh',
+    fieldNote: '',
     stats: [
       { k: '317', v: 'Post-mortems studied', i: 'An archive of 317 structured startup post-mortems, analyzed for decision patterns and failure triggers across 12 years.' },
       { k: '12',  v: 'Recurring failure patterns', i: 'Twelve behavioral patterns that appear in over 80% of documented collapses — long before the financials confirm it.' },
@@ -979,9 +979,9 @@ const ar: LangStrings = {
     metaTitle: 'خبير الفشل — ذكاء فشل الشركات الناشئة',
     metaDesc:
       'دراسة تشريحية في أسباب موت الشركات. لا تدريب. لا كليشيهات. سيكولوجية المؤسس، وتشريح القرارات، وذكاء الأنماط من مئات حالات الانهيار.',
-    stripLeft: 'ملفات القضايا · مفتوحة',
-    stripCenter: 'الرياض · 24.7136° ش',
-    stripRight: 'v.001 · 2026',
+    stripLeft: '',
+    stripCenter: '',
+    stripRight: '',
     tagline: 'ذكاء فشل الشركات الناشئة',
     heroLine1: 'لا نعلّمك',
     heroLine2: 'كيف',
@@ -1033,7 +1033,7 @@ const ar: LangStrings = {
     pullQuote1: 'حين تُفصح الأرقام',
     pullQuote2: 'أخيراً عن الحقيقة،',
     pullQuote3: 'تكون الشركة قد رحلت.',
-    fieldNote: '— ملاحظة ميدانية · 2023 · الرياض',
+    fieldNote: '',
     stats: [
       { k: '317', v: 'تشريح دُرس', i: 'أرشيف من 317 تشريحاً منظماً للشركات الناشئة، حُلِّلت للكشف عن أنماط القرار ومحفّزات الفشل عبر 12 عاماً.' },
       { k: '12',  v: 'نمط فشل متكرر', i: 'اثنا عشر نمطاً سلوكياً تظهر في أكثر من 80% من حالات الانهيار الموثقة — قبل وقت طويل من تأكيد الأرقام المالية ذلك.' },

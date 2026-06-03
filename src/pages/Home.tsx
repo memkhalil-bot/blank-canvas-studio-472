@@ -101,9 +101,9 @@ export default function Home() {
           transition={{ duration: 1.2 }}
           className="relative z-10 max-w-7xl mx-auto w-full flex items-center justify-between text-[10px] tracking-[0.4em] uppercase text-white/30"
         >
-          <span>{h.stripLeft}</span>
-          <span className="hidden md:inline">{h.stripCenter}</span>
-          <span>{h.stripRight}</span>
+          {h.stripLeft && <span>{h.stripLeft}</span>}
+          {h.stripCenter && <span className="hidden md:inline">{h.stripCenter}</span>}
+          {h.stripRight && <span>{h.stripRight}</span>}
         </motion.div>
 
         {/* Main title block */}
@@ -375,12 +375,14 @@ export default function Home() {
             <br />
             <span className={cn('text-ember', !isRTL && 'italic')}>{h.pullQuote3}</span>
           </p>
-          <p className={cn(
-            'mt-12 text-[10px] uppercase text-white/30',
-            isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
-          )}>
-            {h.fieldNote}
-          </p>
+          {h.fieldNote && (
+            <p className={cn(
+              'mt-12 text-[10px] uppercase text-white/30',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'tracking-[0.4em]'
+            )}>
+              {h.fieldNote}
+            </p>
+          )}
         </motion.blockquote>
       </section>
 
