@@ -43,6 +43,8 @@ const AdminSessions     = lazy(() => import("./pages/admin/AdminSessions"));
 const AdminReports      = lazy(() => import("./pages/admin/AdminReports"));
 const AdminFollowUps    = lazy(() => import("./pages/admin/AdminFollowUps"));
 const AdminApprovals    = lazy(() => import("./pages/admin/AdminApprovals"));
+const AdminBookings     = lazy(() => import("./pages/admin/AdminBookings"));
+const BookSession       = lazy(() => import("./pages/BookSession"));
 
 const queryClient = new QueryClient();
 
@@ -77,6 +79,7 @@ function AnimatedRoutes() {
         <Route path="/en/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
         <Route path="/en/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
         <Route path="/en/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
+        <Route path="/en/book-session"          element={<PageTransition><BookSession /></PageTransition>} />
 
         {/* Arabic routes — same components, language derived from URL prefix */}
         <Route path="/ar"                 element={<PageTransition><Home /></PageTransition>} />
@@ -87,6 +90,7 @@ function AnimatedRoutes() {
         <Route path="/ar/case-files"      element={<PageTransition><CaseFiles /></PageTransition>} />
         <Route path="/ar/thank-you"       element={<PageTransition><ThankYou /></PageTransition>} />
         <Route path="/ar/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
+        <Route path="/ar/book-session"          element={<PageTransition><BookSession /></PageTransition>} />
 
         {/* Preview route — remove after visual approval */}
         <Route path="/result-preview" element={<Suspense fallback={<LoadingFallback />}><ResultPreview /></Suspense>} />
@@ -141,6 +145,7 @@ function RootRouter() {
           <Route path="/admin/reports"    element={<ProtectedAdminRoute><AdminReports /></ProtectedAdminRoute>} />
           <Route path="/admin/follow-ups" element={<ProtectedAdminRoute><AdminFollowUps /></ProtectedAdminRoute>} />
           <Route path="/admin/approvals"  element={<ProtectedAdminRoute><AdminApprovals /></ProtectedAdminRoute>} />
+          <Route path="/admin/bookings"   element={<ProtectedAdminRoute><AdminBookings /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
     );

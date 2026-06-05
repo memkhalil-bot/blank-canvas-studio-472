@@ -15,6 +15,7 @@ import {
   DollarSign,
   CalendarDays,
   Skull,
+  CalendarPlus,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isPast, isToday, startOfMonth } from 'date-fns';
@@ -69,6 +70,11 @@ function useStats() {
         sessionsThisMonthRes,
         highRiskRes,
         criticalRes,
+        totalBookingsRes,
+        pendingBookingsRes,
+        scheduledBookingsRes,
+        completedBookingsRes,
+        recentBookingsRes,
       ] = await Promise.all([
         supabase.from('advisory_sessions').select('id', { count: 'exact' }).in('status', ['pending', 'confirmed']),
         supabase.from('follow_ups').select('id', { count: 'exact' }).eq('status', 'pending'),
@@ -76,6 +82,15 @@ function useStats() {
         supabase.from('advisory_sessions').select('id', { count: 'exact' }).gte('created_at', monthStart),
         supabase.from('founder_assessments').select('id', { count: 'exact' }).eq('risk_level', 'INSIDE THE VALLEY'),
         supabase.from('founder_assessments').select('id', { count: 'exact' }).eq('risk_level', 'COLLAPSE PROXIMITY'),
+        (supabase as any).from('booking_requests').select('id', { count: 'exact' }),
+        (supabase as any).from('booking_requests').select('id', { count: 'exact' }).eq('status', 'pending'),
+        (supabase as any).from('booking_requests').select('id', { count: 'exact' }).eq('status', 'scheduled'),
+        (supabase as any).from('booking_requests').select('id', { count: 'exact' }).eq('status', 'completed'),
+        (supabase as any)
+          .from('booking_requests')
+          .select('id, full_name, email, session_type, status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(4),
       ]);
 
       const totalRevenue = (paidSessionsRes.data ?? []).reduce(
@@ -95,9 +110,14 @@ function useStats() {
         sessionsThisMonth: sessionsThisMonthRes.count ?? 0,
         highRiskCases: highRiskRes.count ?? 0,
         criticalCases: criticalRes.count ?? 0,
+        totalBookings:     totalBookingsRes.count ?? 0,
+        pendingBookings:   pendingBookingsRes.count ?? 0,
+        scheduledBookings: scheduledBookingsRes.count ?? 0,
+        completedBookings: completedBookingsRes.count ?? 0,
         recent: recentRes.data ?? [],
-        upcomingSessions: sessionsRes.data ?? [],
+        upcomingSessions:  sessionsRes.data ?? [],
         pendingFollowUpsList: followUpsRes.data ?? [],
+        recentBookings:    recentBookingsRes.data ?? [],
       };
     },
     staleTime: 60_000,
@@ -233,6 +253,34 @@ export default function AdminDashboard() {
       to: '/admin/founders',
       accent: 'text-crimson',
     },
+    {
+      label: adminT.dashboard.stats.totalBookings,
+      value: data?.totalBookings ?? '—',
+      icon: CalendarPlus,
+      to: '/admin/bookings',
+      accent: 'text-ember',
+    },
+    {
+      label: adminT.dashboard.stats.pendingBookings,
+      value: data?.pendingBookings ?? '—',
+      icon: CalendarPlus,
+      to: '/admin/bookings',
+      accent: 'text-amber-400',
+    },
+    {
+      label: adminT.dashboard.stats.scheduledBookings,
+      value: data?.scheduledBookings ?? '—',
+      icon: CalendarDays,
+      to: '/admin/bookings',
+      accent: 'text-recovery',
+    },
+    {
+      label: adminT.dashboard.stats.completedBookings,
+      value: data?.completedBookings ?? '—',
+      icon: CalendarDays,
+      to: '/admin/bookings',
+      accent: 'text-white/40',
+    },
   ];
 
   return (
@@ -279,7 +327,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Panels row */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Recent submissions */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -452,6 +500,74 @@ export default function AdminDashboard() {
                       )}
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Recent Bookings */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.56, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-[#0d0d0d] border border-white/6 rounded-xl overflow-hidden"
+        >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <CalendarPlus className="size-4 text-ember" />
+              <h2 className="text-[11px] text-white/60 font-arabic">
+                {adminT.dashboard.panels.recentBookings}
+              </h2>
+            </div>
+            <Link
+              to="/admin/bookings"
+              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
+            >
+              {adminT.common.viewAll}
+            </Link>
+          </div>
+
+          {isLoading ? (
+            <div className="p-6 space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-10 bg-white/4 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : !data?.recentBookings?.length ? (
+            <div className="px-6 py-12 text-center">
+              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.bookings}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {data.recentBookings.map((b: any) => {
+                const typeStyles: Record<string, string> = {
+                  founder_call:      'text-sky-300',
+                  startup_autopsy:   'text-amber-300',
+                  emergency_session: 'text-crimson',
+                };
+                return (
+                  <Link
+                    key={b.id}
+                    to="/admin/bookings"
+                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/3 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white/80 truncate font-arabic">{b.full_name}</p>
+                      <p className="text-[11px] text-white/35 truncate font-arabic">{b.email}</p>
+                    </div>
+                    <div className="text-right shrink-0 space-y-1">
+                      <p className={cn('text-[10px] font-arabic', typeStyles[b.session_type] ?? 'text-white/40')}>
+                        {adminT.bookings.sessionTypes[b.session_type] ?? b.session_type}
+                      </p>
+                      {b.created_at && (
+                        <p className="text-[10px] text-white/25">
+                          {format(new Date(b.created_at), 'MMM d')}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowRight className="size-3.5 text-white/15 group-hover:text-ember/60 transition-colors shrink-0" />
+                  </Link>
                 );
               })}
             </div>
