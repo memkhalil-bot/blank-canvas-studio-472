@@ -12,6 +12,7 @@ import {
   FileText,
   Bell,
   CheckSquare,
+  CalendarPlus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ const navItems = [
   { to: '/admin/reports',      label: adminT.nav.reports,      icon: FileText,           end: false },
   { to: '/admin/follow-ups',   label: adminT.nav.followUps,    icon: Bell,               end: false },
   { to: '/admin/approvals',    label: adminT.nav.approvals,    icon: CheckSquare,        end: false },
+  { to: '/admin/bookings',     label: adminT.nav.bookings,     icon: CalendarPlus,       end: false },
   { to: '/admin/submissions',  label: adminT.nav.submissions,  icon: Users,              end: false },
   { to: '/admin/testimonials', label: adminT.nav.testimonials, icon: MessageSquareQuote, end: false },
 ];
