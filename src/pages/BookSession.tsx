@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, CheckCircle2, AlertCircle, ChevronDown } from 'lucide-react';
+import { Flame, CheckCircle2, AlertCircle, ChevronDown, Tag } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SEOHead } from '@/components/seo/SEOHead';
@@ -56,6 +56,11 @@ const copy = {
       country:       'Saudi Arabia',
       description:   'The numbers say one thing. My gut says another…',
     },
+    promoCode:         'Promo Code (optional)',
+    promoPlaceholder:  'FAIL01',
+    promoValidating:   'Validating…',
+    promoApplied:      'Code applied',
+    promoInvalid:      'Invalid or expired code',
     submit:     'Submit Request',
     submitting: 'Submitting…',
     successHeading: 'Your session request has been received.',
@@ -109,6 +114,11 @@ const copy = {
       country:       'المملكة العربية السعودية',
       description:   'الأرقام تقول شيئاً. حدسي يقول شيئاً آخر...',
     },
+    promoCode:         'كود الخصم (اختياري)',
+    promoPlaceholder:  'FAIL01',
+    promoValidating:   'جارٍ التحقق...',
+    promoApplied:      'تم تطبيق الكود',
+    promoInvalid:      'الكود غير صالح أو منتهي الصلاحية',
     submit:     'إرسال الطلب',
     submitting: 'جارٍ الإرسال...',
     successHeading: 'تم استلام طلب الجلسة.',
@@ -181,9 +191,51 @@ export default function BookSession() {
   const [success, setSuccess] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
+  // Promo code state
+  const [promoInput, setPromoInput] = useState('');
+  const [promoValidating, setPromoValidating] = useState(false);
+  const [promoResult, setPromoResult] = useState<{
+    valid: boolean;
+    promoCodeId: string | null;
+    discountType: string | null;
+    discountValue: number | null;
+    title: string | null;
+  } | null>(null);
+  const promoDebounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const set = (field: keyof FormState, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => { const e = { ...prev }; delete e[field]; return e; });
+  };
+
+  const validatePromo = (code: string) => {
+    if (!code.trim()) { setPromoResult(null); return; }
+    if (promoDebounce.current) clearTimeout(promoDebounce.current);
+    promoDebounce.current = setTimeout(async () => {
+      setPromoValidating(true);
+      try {
+        const { data } = await (supabase as any).rpc('validate_promo_code', {
+          p_code:         code.trim().toUpperCase(),
+          p_service:      form.session_type || 'founder_call',
+          p_customer_email: form.email.trim() || null,
+        });
+        if (data && data.valid) {
+          setPromoResult({
+            valid: true,
+            promoCodeId:   data.promo_code_id,
+            discountType:  data.discount_type,
+            discountValue: data.discount_value,
+            title:         data.title,
+          });
+        } else {
+          setPromoResult({ valid: false, promoCodeId: null, discountType: null, discountValue: null, title: null });
+        }
+      } catch {
+        setPromoResult({ valid: false, promoCodeId: null, discountType: null, discountValue: null, title: null });
+      } finally {
+        setPromoValidating(false);
+      }
+    }, 600);
   };
 
   const validate = (): boolean => {
@@ -218,6 +270,7 @@ export default function BookSession() {
         preferred_time: form.preferred_time || null,
         description:    form.description.trim(),
         status:         'pending',
+        promo_code_id:  promoResult?.valid ? promoResult.promoCodeId : null,
       };
 
       const { data: inserted, error } = await (supabase as any)
@@ -500,6 +553,46 @@ export default function BookSession() {
               dir={isRTL ? 'rtl' : 'ltr'}
               className={cn(inputClass, 'resize-none pt-3')}
             />
+          </Field>
+
+          {/* Promo code */}
+          <Field label={c.promoCode} isRTL={isRTL}>
+            <div className="relative">
+              <Tag className="absolute start-0 top-1/2 -translate-y-1/2 size-3.5 text-white/20 pointer-events-none" />
+              <input
+                type="text"
+                value={promoInput}
+                onChange={(e) => {
+                  const v = e.target.value.toUpperCase();
+                  setPromoInput(v);
+                  setPromoResult(null);
+                  validatePromo(v);
+                }}
+                placeholder={c.promoPlaceholder}
+                dir="ltr"
+                className={cn(inputBase, 'ps-6 font-mono tracking-widest text-sm')}
+              />
+            </div>
+            {promoValidating && (
+              <p className={cn('mt-2 text-xs text-white/35', isRTL && 'font-arabic text-right')}>
+                {c.promoValidating}
+              </p>
+            )}
+            {!promoValidating && promoResult?.valid && (
+              <p className={cn('mt-2 text-xs text-recovery flex items-center gap-1.5', isRTL && 'font-arabic flex-row-reverse text-right')}>
+                <CheckCircle2 className="size-3 shrink-0" />
+                {c.promoApplied}
+                {promoResult.title && ` — ${promoResult.title}`}
+                {promoResult.discountType === 'percentage' && ` (${promoResult.discountValue}%)`}
+                {promoResult.discountType === 'fixed_amount' && ` ($${promoResult.discountValue})`}
+                {promoResult.discountType === 'free' && ' (مجاني)'}
+              </p>
+            )}
+            {!promoValidating && promoInput && promoResult && !promoResult.valid && (
+              <p className={cn('mt-2 text-xs text-ember', isRTL && 'font-arabic text-right')}>
+                {c.promoInvalid}
+              </p>
+            )}
           </Field>
 
           {/* Privacy notice */}

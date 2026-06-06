@@ -509,6 +509,7 @@ export function ValleyAssessment() {
 
   const nodeFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startGlowTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const valleyLeadId = useRef<string | null>(null);
 
   // Gate form
   const [form, setForm] = useState({
@@ -649,6 +650,25 @@ export function ValleyAssessment() {
     setFormErrors({});
     setFounderName(form.name.trim());
     setFounderEmail(form.email.trim());
+    // Fire-and-forget: create a valley_lead record for tracking
+    void (async () => {
+      try {
+        const { data } = await (supabase as any)
+          .from('valley_leads')
+          .insert({
+            name: form.name.trim(),
+            email: form.email.trim(),
+            company: form.company || null,
+            country: form.country || null,
+            total_questions: QUESTIONS.length,
+            last_question_index: 0,
+            completed: false,
+          })
+          .select('id')
+          .single();
+        if (data?.id) valleyLeadId.current = data.id;
+      } catch { /* non-blocking */ }
+    })();
     // Proceed to warning screen before first question
     setStage('warning');
   };
@@ -716,7 +736,7 @@ export function ValleyAssessment() {
       const bs = Array.from(new Set(
         QUESTIONS.filter(q => (fa[q.id] ?? 0) >= 4 && q.blindSpot).map(q => q.blindSpot!),
       ));
-      await supabase.from('founder_assessments').insert({
+      const { data: assessment } = await supabase.from('founder_assessments').insert({
         email: founderEmail,
         name: founderName,
         company: form.company || null,
@@ -729,7 +749,20 @@ export function ValleyAssessment() {
         blind_spots: bs,
         insight: v.insight,
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
-      } as never);
+      } as never).select('id').single();
+      // Mark valley lead as completed
+      if (valleyLeadId.current) {
+        void (supabase as any)
+          .from('valley_leads')
+          .update({
+            completed: true,
+            completed_at: new Date().toISOString(),
+            last_question_index: QUESTIONS.length,
+            risk_level: v.level,
+            assessment_id: (assessment as any)?.id ?? null,
+          })
+          .eq('id', valleyLeadId.current);
+      }
     } catch (err) { console.error('submission failed', err); }
     setStage('result');
     rootRef.current?.scrollTo({ top: 0, behavior: 'smooth' });

@@ -12,10 +12,12 @@ import {
   Activity,
   CalendarClock,
   Bell,
-  DollarSign,
   CalendarDays,
   Skull,
   CalendarPlus,
+  Inbox,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isPast, isToday, startOfMonth } from 'date-fns';
@@ -66,7 +68,6 @@ function useStats() {
       const [
         activeSessionsRes,
         pendingFollowUpsRes,
-        paidSessionsRes,
         sessionsThisMonthRes,
         highRiskRes,
         criticalRes,
@@ -75,10 +76,14 @@ function useStats() {
         scheduledBookingsRes,
         completedBookingsRes,
         recentBookingsRes,
+        valleyTotalRes,
+        valleyCompletedRes,
+        valleyAbandonedRes,
+        reportPendingRes,
+        recentReportQueueRes,
       ] = await Promise.all([
         supabase.from('advisory_sessions').select('id', { count: 'exact' }).in('status', ['pending', 'confirmed']),
         supabase.from('follow_ups').select('id', { count: 'exact' }).eq('status', 'pending'),
-        supabase.from('advisory_sessions').select('session_value').eq('payment_status', 'paid'),
         supabase.from('advisory_sessions').select('id', { count: 'exact' }).gte('created_at', monthStart),
         supabase.from('founder_assessments').select('id', { count: 'exact' }).eq('risk_level', 'INSIDE THE VALLEY'),
         supabase.from('founder_assessments').select('id', { count: 'exact' }).eq('risk_level', 'COLLAPSE PROXIMITY'),
@@ -91,33 +96,41 @@ function useStats() {
           .select('id, full_name, email, session_type, status, created_at')
           .order('created_at', { ascending: false })
           .limit(4),
+        (supabase as any).from('valley_leads').select('id', { count: 'exact' }),
+        (supabase as any).from('valley_leads').select('id', { count: 'exact' }).eq('completed', true),
+        (supabase as any).from('valley_leads').select('id', { count: 'exact' }).eq('completed', false),
+        (supabase as any).from('report_requests').select('id', { count: 'exact' }).eq('workflow_status', 'pending_review'),
+        (supabase as any)
+          .from('report_requests')
+          .select('id, founder_name, company, workflow_status, created_at')
+          .order('created_at', { ascending: false })
+          .limit(4),
       ]);
 
-      const totalRevenue = (paidSessionsRes.data ?? []).reduce(
-        (sum, s) => sum + (s.session_value ?? 0),
-        0
-      );
-
       return {
-        totalSubmissions: assessmentsRes.count ?? 0,
-        totalTestimonials: testimonialsRes.count ?? 0,
+        totalSubmissions:    assessmentsRes.count ?? 0,
+        totalTestimonials:   testimonialsRes.count ?? 0,
         publishedTestimonials: testimonials.filter((t) => t.published).length,
         avgRisk,
         highRisk,
-        activeSessions: activeSessionsRes.count ?? 0,
-        pendingFollowUps: pendingFollowUpsRes.count ?? 0,
-        totalRevenue,
-        sessionsThisMonth: sessionsThisMonthRes.count ?? 0,
-        highRiskCases: highRiskRes.count ?? 0,
-        criticalCases: criticalRes.count ?? 0,
-        totalBookings:     totalBookingsRes.count ?? 0,
-        pendingBookings:   pendingBookingsRes.count ?? 0,
-        scheduledBookings: scheduledBookingsRes.count ?? 0,
-        completedBookings: completedBookingsRes.count ?? 0,
-        recent: recentRes.data ?? [],
-        upcomingSessions:  sessionsRes.data ?? [],
+        activeSessions:      activeSessionsRes.count ?? 0,
+        pendingFollowUps:    pendingFollowUpsRes.count ?? 0,
+        sessionsThisMonth:   sessionsThisMonthRes.count ?? 0,
+        highRiskCases:       highRiskRes.count ?? 0,
+        criticalCases:       criticalRes.count ?? 0,
+        totalBookings:       totalBookingsRes.count ?? 0,
+        pendingBookings:     pendingBookingsRes.count ?? 0,
+        scheduledBookings:   scheduledBookingsRes.count ?? 0,
+        completedBookings:   completedBookingsRes.count ?? 0,
+        valleyTotal:         valleyTotalRes.count ?? 0,
+        valleyCompleted:     valleyCompletedRes.count ?? 0,
+        valleyAbandoned:     valleyAbandonedRes.count ?? 0,
+        reportPending:       reportPendingRes.count ?? 0,
+        recent:              recentRes.data ?? [],
+        upcomingSessions:    sessionsRes.data ?? [],
         pendingFollowUpsList: followUpsRes.data ?? [],
-        recentBookings:    recentBookingsRes.data ?? [],
+        recentBookings:      recentBookingsRes.data ?? [],
+        recentReportQueue:   recentReportQueueRes.data ?? [],
       };
     },
     staleTime: 60_000,
@@ -177,6 +190,96 @@ function PriorityBadge({ priority }: { priority: string | null }) {
   );
 }
 
+function WorkflowBadge({ status }: { status: string | null }) {
+  if (!status) return null;
+  const styles: Record<string, string> = {
+    pending_review: 'bg-amber-950/30 text-amber-400 border-amber-800/30',
+    draft_ready:    'bg-sky-950/30 text-sky-400 border-sky-800/30',
+    approved:       'bg-violet-950/30 text-violet-400 border-violet-800/30',
+    scheduled:      'bg-recovery/10 text-recovery border-recovery/25',
+    sent:           'bg-white/5 text-white/35 border-white/8',
+    rejected:       'bg-crimson/10 text-crimson border-crimson/25',
+  };
+  const style = styles[status] ?? 'bg-white/5 text-white/35 border-white/8';
+  const label = adminT.reportQueue?.workflowStatus?.[status] ?? status;
+  return (
+    <span className={`inline-flex px-2 py-0.5 rounded-md text-[10px] font-medium border font-arabic ${style}`}>
+      {label}
+    </span>
+  );
+}
+
+// ── Valley Funnel Strip ───────────────────────────────────────────────────────
+
+function FunnelStrip({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const steps = [
+    {
+      label: adminT.dashboard.funnel.entries,
+      value: data?.valleyTotal,
+      color: 'text-ember',
+      bg: 'bg-ember/8',
+      border: 'border-ember/15',
+    },
+    {
+      label: adminT.dashboard.funnel.completed,
+      value: data?.valleyCompleted,
+      color: 'text-sky-400',
+      bg: 'bg-sky-400/8',
+      border: 'border-sky-400/15',
+    },
+    {
+      label: adminT.dashboard.funnel.reportRequests,
+      value: data?.reportPending,
+      color: 'text-violet-400',
+      bg: 'bg-violet-400/8',
+      border: 'border-violet-400/15',
+    },
+    {
+      label: adminT.dashboard.funnel.completedSessions,
+      value: data?.completedBookings,
+      color: 'text-recovery',
+      bg: 'bg-recovery/8',
+      border: 'border-recovery/15',
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      className="mb-8 p-1 bg-[#161b22] border border-white/6 rounded-xl"
+    >
+      <div className="flex items-center">
+        <div className="flex-1 px-4 py-2">
+          <p className="text-[9px] tracking-[0.2em] uppercase text-white/25 mb-3 pr-1">
+            {adminT.dashboard.funnel.title}
+          </p>
+          <div className="flex items-center gap-0">
+            {steps.map((step, i) => (
+              <div key={step.label} className="flex items-center flex-1">
+                <div className={`flex-1 px-4 py-3 rounded-lg ${step.bg} border ${step.border}`}>
+                  <div className={`text-2xl font-serif-display tabular-nums ${step.color} mb-0.5`}>
+                    {loading ? (
+                      <span className="inline-block w-8 h-6 bg-white/6 rounded animate-pulse" />
+                    ) : (
+                      step.value ?? 0
+                    )}
+                  </div>
+                  <p className="text-[10px] text-white/40 font-arabic">{step.label}</p>
+                </div>
+                {i < steps.length - 1 && (
+                  <ChevronLeft className="size-4 text-white/15 shrink-0 mx-1" />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
@@ -184,39 +287,39 @@ export default function AdminDashboard() {
 
   const stats = [
     {
-      label: adminT.dashboard.stats.totalSubmissions,
-      value: data?.totalSubmissions ?? '—',
-      icon: Users,
-      to: '/admin/founders',
+      label: adminT.dashboard.stats.valleyEntries,
+      value: data?.valleyTotal ?? '—',
+      icon: TrendingUp,
+      to: '/admin/valley-leads',
       accent: 'text-ember',
     },
     {
-      label: adminT.dashboard.stats.avgRiskScore,
-      value: data ? `${data.avgRisk}%` : '—',
-      icon: TrendingUp,
-      to: '/admin/founders',
-      accent: 'text-yellow-400',
-    },
-    {
-      label: adminT.dashboard.stats.highRiskFounders,
-      value: data?.highRisk ?? '—',
-      icon: AlertTriangle,
-      to: '/admin/founders',
-      accent: 'text-crimson',
-    },
-    {
-      label: adminT.dashboard.stats.publishedTestimonials,
-      value: data ? `${data.publishedTestimonials} / ${data.totalTestimonials}` : '—',
-      icon: MessageSquareQuote,
-      to: '/admin/testimonials',
+      label: adminT.dashboard.stats.completedDiagnostics,
+      value: data?.valleyCompleted ?? '—',
+      icon: Activity,
+      to: '/admin/valley-leads',
       accent: 'text-sky-400',
+    },
+    {
+      label: adminT.dashboard.stats.abandonedLeads,
+      value: data?.valleyAbandoned ?? '—',
+      icon: AlertTriangle,
+      to: '/admin/valley-leads',
+      accent: 'text-amber-400',
+    },
+    {
+      label: adminT.dashboard.stats.reportRequestsPending,
+      value: data?.reportPending ?? '—',
+      icon: Inbox,
+      to: '/admin/report-queue',
+      accent: 'text-violet-400',
     },
     {
       label: adminT.dashboard.stats.activeSessions,
       value: data?.activeSessions ?? '—',
       icon: CalendarClock,
       to: '/admin/sessions',
-      accent: 'text-sky-400',
+      accent: 'text-sky-300',
     },
     {
       label: adminT.dashboard.stats.pendingFollowUps,
@@ -224,34 +327,6 @@ export default function AdminDashboard() {
       icon: Bell,
       to: '/admin/follow-ups',
       accent: 'text-violet-400',
-    },
-    {
-      label: adminT.dashboard.stats.totalRevenue,
-      value: data ? `$${data.totalRevenue.toLocaleString()}` : '—',
-      icon: DollarSign,
-      to: '/admin/sessions',
-      accent: 'text-recovery',
-    },
-    {
-      label: adminT.dashboard.stats.sessionsThisMonth,
-      value: data?.sessionsThisMonth ?? '—',
-      icon: CalendarDays,
-      to: '/admin/sessions',
-      accent: 'text-sky-300',
-    },
-    {
-      label: adminT.dashboard.stats.highRiskCases,
-      value: data?.highRiskCases ?? '—',
-      icon: AlertTriangle,
-      to: '/admin/founders',
-      accent: 'text-orange-400',
-    },
-    {
-      label: adminT.dashboard.stats.criticalCases,
-      value: data?.criticalCases ?? '—',
-      icon: Skull,
-      to: '/admin/founders',
-      accent: 'text-crimson',
     },
     {
       label: adminT.dashboard.stats.totalBookings,
@@ -275,11 +350,25 @@ export default function AdminDashboard() {
       accent: 'text-recovery',
     },
     {
-      label: adminT.dashboard.stats.completedBookings,
-      value: data?.completedBookings ?? '—',
-      icon: CalendarDays,
-      to: '/admin/bookings',
-      accent: 'text-white/40',
+      label: adminT.dashboard.stats.highRiskCases,
+      value: data?.highRiskCases ?? '—',
+      icon: AlertTriangle,
+      to: '/admin/founders',
+      accent: 'text-orange-400',
+    },
+    {
+      label: adminT.dashboard.stats.criticalCases,
+      value: data?.criticalCases ?? '—',
+      icon: Skull,
+      to: '/admin/founders',
+      accent: 'text-crimson',
+    },
+    {
+      label: adminT.dashboard.stats.publishedTestimonials,
+      value: data ? `${data.publishedTestimonials} / ${data.totalTestimonials}` : '—',
+      icon: MessageSquareQuote,
+      to: '/admin/testimonials',
+      accent: 'text-white/50',
     },
   ];
 
@@ -293,8 +382,11 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Stat cards — 2×3 on xl */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">
+      {/* Valley Funnel Strip */}
+      <FunnelStrip data={data} loading={isLoading} />
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-8">
         {stats.map((s, i) => {
           const Icon = s.icon;
           return (
@@ -302,24 +394,24 @@ export default function AdminDashboard() {
               key={s.label}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ delay: i * 0.04, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
             >
               <Link
                 to={s.to}
-                className="block p-5 bg-[#0d0d0d] border border-white/6 rounded-xl hover:border-ember/20 hover:bg-[#0f0f0f] transition-all duration-300 group"
+                className="block p-5 bg-[#161b22] border border-white/6 rounded-xl hover:border-white/12 hover:bg-[#1c2128] transition-all duration-200 group"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <Icon className={`size-5 ${s.accent}`} />
-                  <ArrowRight className="size-3.5 text-white/15 group-hover:text-ember/40 transition-colors" />
+                <div className="flex items-start justify-between mb-3">
+                  <Icon className={`size-4 ${s.accent}`} />
+                  <ChevronLeft className="size-3 text-white/12 group-hover:text-white/30 transition-colors" />
                 </div>
-                <div className={`text-3xl font-serif-display ${s.accent} mb-1.5 tabular-nums`}>
+                <div className={`text-2xl font-serif-display ${s.accent} mb-1 tabular-nums`}>
                   {isLoading ? (
-                    <span className="inline-block w-12 h-7 bg-white/8 rounded animate-pulse" />
+                    <span className="inline-block w-10 h-6 bg-white/6 rounded animate-pulse" />
                   ) : (
                     s.value
                   )}
                 </div>
-                <p className="text-[11px] text-white/35 font-arabic">{s.label}</p>
+                <p className="text-[10px] text-white/35 font-arabic">{s.label}</p>
               </Link>
             </motion.div>
           );
@@ -327,13 +419,14 @@ export default function AdminDashboard() {
       </div>
 
       {/* Panels row */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
         {/* Recent submissions */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.38, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#0d0d0d] border border-white/6 rounded-xl overflow-hidden"
+          transition={{ delay: 0.30, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
@@ -342,11 +435,9 @@ export default function AdminDashboard() {
                 {adminT.dashboard.panels.recentSubmissions}
               </h2>
             </div>
-            <Link
-              to="/admin/submissions"
-              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
-            >
+            <Link to="/admin/founders" className="text-[10px] text-white/30 hover:text-white/60 transition-colors font-arabic flex items-center gap-1">
               {adminT.common.viewAll}
+              <ChevronLeft className="size-3" />
             </Link>
           </div>
 
@@ -366,7 +457,7 @@ export default function AdminDashboard() {
                 <Link
                   key={row.id}
                   to={`/admin/submissions?id=${row.id}`}
-                  className="flex items-center gap-4 px-6 py-4 hover:bg-white/3 transition-colors group"
+                  className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/3 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white/80 truncate">{row.name ?? row.email}</p>
@@ -376,15 +467,70 @@ export default function AdminDashboard() {
                   </div>
                   <div className="text-right shrink-0">
                     <p className="text-sm font-medium text-white/70">
-                      {row.risk_score}
-                      <span className="text-white/30 text-xs ml-0.5">/100</span>
+                      {row.risk_score}<span className="text-white/30 text-xs ml-0.5">/100</span>
                     </p>
                     <RiskBadge level={row.risk_level} />
                   </div>
-                  <div className="text-right shrink-0 text-[10px] text-white/25 hidden sm:block">
-                    {row.created_at && format(new Date(row.created_at), 'MMM d')}
+                  <ArrowRight className="size-3.5 text-white/12 group-hover:text-white/40 transition-colors shrink-0" />
+                </Link>
+              ))}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Report Queue */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.34, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
+        >
+          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <Inbox className="size-4 text-violet-400" />
+              <h2 className="text-[11px] text-white/60 font-arabic">
+                {adminT.dashboard.panels.reportQueue}
+              </h2>
+            </div>
+            <Link to="/admin/report-queue" className="text-[10px] text-white/30 hover:text-white/60 transition-colors font-arabic flex items-center gap-1">
+              {adminT.common.viewAll}
+              <ChevronLeft className="size-3" />
+            </Link>
+          </div>
+
+          {isLoading ? (
+            <div className="p-6 space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-10 bg-white/4 rounded animate-pulse" />
+              ))}
+            </div>
+          ) : !data?.recentReportQueue?.length ? (
+            <div className="px-6 py-12 text-center">
+              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.reportQueue}</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5">
+              {data.recentReportQueue.map((r: any) => (
+                <Link
+                  key={r.id}
+                  to="/admin/report-queue"
+                  className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/3 transition-colors group"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white/80 truncate font-arabic">{r.founder_name}</p>
+                    {r.company && (
+                      <p className="text-[11px] text-white/35 truncate font-arabic">{r.company}</p>
+                    )}
                   </div>
-                  <ArrowRight className="size-3.5 text-white/15 group-hover:text-ember/60 transition-colors shrink-0" />
+                  <div className="text-right shrink-0 space-y-1">
+                    <WorkflowBadge status={r.workflow_status} />
+                    {r.created_at && (
+                      <p className="text-[10px] text-white/25 block">
+                        {format(new Date(r.created_at), 'MMM d')}
+                      </p>
+                    )}
+                  </div>
+                  <ArrowRight className="size-3.5 text-white/12 group-hover:text-white/40 transition-colors shrink-0" />
                 </Link>
               ))}
             </div>
@@ -395,8 +541,8 @@ export default function AdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.44, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#0d0d0d] border border-white/6 rounded-xl overflow-hidden"
+          transition={{ delay: 0.38, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
@@ -405,11 +551,9 @@ export default function AdminDashboard() {
                 {adminT.dashboard.panels.upcomingSessions}
               </h2>
             </div>
-            <Link
-              to="/admin/sessions"
-              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
-            >
+            <Link to="/admin/sessions" className="text-[10px] text-white/30 hover:text-white/60 transition-colors font-arabic flex items-center gap-1">
               {adminT.common.viewAll}
+              <ChevronLeft className="size-3" />
             </Link>
           </div>
 
@@ -426,7 +570,7 @@ export default function AdminDashboard() {
           ) : (
             <div className="divide-y divide-white/5">
               {data.upcomingSessions.map((s) => (
-                <div key={s.id} className="flex items-center gap-4 px-6 py-4">
+                <div key={s.id} className="flex items-center gap-4 px-6 py-3.5">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white/80 truncate">{s.founder_name}</p>
                     {s.company && (
@@ -451,8 +595,8 @@ export default function AdminDashboard() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.50, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#0d0d0d] border border-white/6 rounded-xl overflow-hidden"
+          transition={{ delay: 0.42, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-[#161b22] border border-white/6 rounded-xl overflow-hidden"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
             <div className="flex items-center gap-3">
@@ -461,11 +605,9 @@ export default function AdminDashboard() {
                 {adminT.dashboard.panels.pendingFollowUps}
               </h2>
             </div>
-            <Link
-              to="/admin/follow-ups"
-              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
-            >
+            <Link to="/admin/follow-ups" className="text-[10px] text-white/30 hover:text-white/60 transition-colors font-arabic flex items-center gap-1">
               {adminT.common.viewAll}
+              <ChevronLeft className="size-3" />
             </Link>
           </div>
 
@@ -484,7 +626,7 @@ export default function AdminDashboard() {
               {data.pendingFollowUpsList.map((f) => {
                 const isOverdue = !!f.due_date && isPast(new Date(f.due_date)) && !isToday(new Date(f.due_date));
                 return (
-                  <div key={f.id} className="flex items-center gap-4 px-6 py-4">
+                  <div key={f.id} className="flex items-center gap-4 px-6 py-3.5">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white/80 truncate">{f.title}</p>
                       {f.founder_name && (
@@ -500,74 +642,6 @@ export default function AdminDashboard() {
                       )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-        </motion.div>
-
-        {/* Recent Bookings */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.56, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-[#0d0d0d] border border-white/6 rounded-xl overflow-hidden"
-        >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
-            <div className="flex items-center gap-3">
-              <CalendarPlus className="size-4 text-ember" />
-              <h2 className="text-[11px] text-white/60 font-arabic">
-                {adminT.dashboard.panels.recentBookings}
-              </h2>
-            </div>
-            <Link
-              to="/admin/bookings"
-              className="text-[10px] text-ember/60 hover:text-ember transition-colors font-arabic"
-            >
-              {adminT.common.viewAll}
-            </Link>
-          </div>
-
-          {isLoading ? (
-            <div className="p-6 space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-10 bg-white/4 rounded animate-pulse" />
-              ))}
-            </div>
-          ) : !data?.recentBookings?.length ? (
-            <div className="px-6 py-12 text-center">
-              <p className="text-white/25 text-sm font-arabic">{adminT.dashboard.empty.bookings}</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-white/5">
-              {data.recentBookings.map((b: any) => {
-                const typeStyles: Record<string, string> = {
-                  founder_call:      'text-sky-300',
-                  startup_autopsy:   'text-amber-300',
-                  emergency_session: 'text-crimson',
-                };
-                return (
-                  <Link
-                    key={b.id}
-                    to="/admin/bookings"
-                    className="flex items-center gap-4 px-6 py-4 hover:bg-white/3 transition-colors group"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/80 truncate font-arabic">{b.full_name}</p>
-                      <p className="text-[11px] text-white/35 truncate font-arabic">{b.email}</p>
-                    </div>
-                    <div className="text-right shrink-0 space-y-1">
-                      <p className={cn('text-[10px] font-arabic', typeStyles[b.session_type] ?? 'text-white/40')}>
-                        {adminT.bookings.sessionTypes[b.session_type] ?? b.session_type}
-                      </p>
-                      {b.created_at && (
-                        <p className="text-[10px] text-white/25">
-                          {format(new Date(b.created_at), 'MMM d')}
-                        </p>
-                      )}
-                    </div>
-                    <ArrowRight className="size-3.5 text-white/15 group-hover:text-ember/60 transition-colors shrink-0" />
-                  </Link>
                 );
               })}
             </div>
