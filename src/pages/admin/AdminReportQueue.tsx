@@ -11,10 +11,9 @@ import {
   X,
   Copy,
   CheckCheck,
-  ChevronDown,
-  ExternalLink,
-  Calendar,
 } from 'lucide-react';
+import { WorkflowStatusManager } from '@/components/admin/WorkflowStatusManager';
+import { WorkflowTimeline } from '@/components/admin/WorkflowTimeline';
 import { cn } from '@/lib/utils';
 
 interface ReportRequest {
@@ -45,28 +44,6 @@ interface ReportRequest {
 
 type WorkflowKey = 'ALL' | 'PENDING_REVIEW' | 'DRAFT_READY' | 'APPROVED' | 'SCHEDULED' | 'SENT' | 'REJECTED';
 
-const WORKFLOW_ORDER = [
-  'pending_review',
-  'draft_ready',
-  'approved',
-  'scheduled',
-  'sent',
-] as const;
-
-function nextWorkflowStatus(current: string): string | null {
-  const idx = WORKFLOW_ORDER.indexOf(current as any);
-  return idx >= 0 && idx < WORKFLOW_ORDER.length - 1 ? WORKFLOW_ORDER[idx + 1] : null;
-}
-
-function advanceButtonLabel(current: string): string {
-  switch (current) {
-    case 'pending_review': return 'المسودة جاهزة';
-    case 'draft_ready':    return 'موافقة';
-    case 'approved':       return 'جدولة الإرسال';
-    case 'scheduled':      return 'تأكيد الإرسال';
-    default:               return adminT.reportQueue.actions.markDraftReady;
-  }
-}
 
 function useReportQueue() {
   return useQuery({
@@ -165,43 +142,19 @@ function DetailPanel({
   const qc = useQueryClient();
   const [notes, setNotes] = useState(report.admin_notes ?? '');
   const [copied, setCopied] = useState(false);
-  const [showSchedule, setShowSchedule] = useState(false);
-  const [scheduleDate, setScheduleDate] = useState('');
 
-  const updateMutation = useMutation({
-    mutationFn: async (updates: Partial<ReportRequest>) => {
+  const notesMutation = useMutation({
+    mutationFn: async (adminNotes: string) => {
       const { error } = await (supabase as any)
         .from('report_requests')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ admin_notes: adminNotes, updated_at: new Date().toISOString() })
         .eq('id', report.id);
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'report-queue'] }),
   });
 
-  const advanceStatus = () => {
-    const next = nextWorkflowStatus(report.workflow_status);
-    if (!next) return;
-    // If next status is 'scheduled', require a date first
-    if (next === 'scheduled') {
-      if (!showSchedule) {
-        setShowSchedule(true);
-        return;
-      }
-      if (!scheduleDate) return;
-      updateMutation.mutate({
-        workflow_status: 'scheduled',
-        scheduled_for: new Date(scheduleDate).toISOString(),
-      });
-      setShowSchedule(false);
-      return;
-    }
-    updateMutation.mutate({ workflow_status: next });
-  };
-
-  const rejectReport = () => updateMutation.mutate({ workflow_status: 'rejected' });
-
-  const saveNotes = () => updateMutation.mutate({ admin_notes: notes });
+  const saveNotes = () => notesMutation.mutate(notes);
 
   const copyEmail = () => {
     navigator.clipboard.writeText(buildEmailPreview(report)).then(() => {
@@ -209,9 +162,6 @@ function DetailPanel({
       setTimeout(() => setCopied(false), 2500);
     });
   };
-
-  const nextStatus = nextWorkflowStatus(report.workflow_status);
-  const actionLabel = nextStatus ? advanceButtonLabel(report.workflow_status) : null;
 
   const riskColor: Record<string, string> = {
     STABLE:               'text-recovery',
@@ -320,59 +270,23 @@ function DetailPanel({
           <PaymentBadge status={report.payment_status} />
         </div>
 
-        {/* Schedule date input (shown when advancing to 'scheduled') */}
-        {showSchedule && (
-          <div className="p-3 bg-[#161b22] rounded-lg border border-white/10 space-y-2">
-            <p className="text-[10px] uppercase tracking-wider text-white/30 font-arabic flex items-center gap-1.5">
-              <Calendar className="size-3" />
-              حدد تاريخ ووقت الإرسال
-            </p>
-            <input
-              type="datetime-local"
-              value={scheduleDate}
-              onChange={(e) => setScheduleDate(e.target.value)}
-              className="w-full bg-[#0d1117] border border-white/15 rounded-lg px-3 py-2 text-sm text-white/70 focus:outline-none focus:border-white/30 transition-colors"
-              dir="ltr"
-            />
-            <div className="flex gap-2">
-              <button
-                onClick={advanceStatus}
-                disabled={!scheduleDate || updateMutation.isPending}
-                className="flex-1 py-2 bg-recovery/10 hover:bg-recovery/15 text-recovery border border-recovery/20 rounded-lg text-[12px] font-arabic transition-colors disabled:opacity-50"
-              >
-                تأكيد الجدولة
-              </button>
-              <button
-                onClick={() => { setShowSchedule(false); setScheduleDate(''); }}
-                className="px-3 py-2 bg-white/4 hover:bg-white/8 text-white/40 border border-white/8 rounded-lg text-[12px] font-arabic transition-colors"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Actions */}
-        {!showSchedule && report.workflow_status !== 'sent' && report.workflow_status !== 'rejected' && (
-          <div className="flex gap-2">
-            {actionLabel && (
-              <button
-                onClick={advanceStatus}
-                disabled={updateMutation.isPending}
-                className="flex-1 py-2.5 bg-recovery/10 hover:bg-recovery/15 text-recovery border border-recovery/20 rounded-lg text-[12px] font-arabic transition-colors disabled:opacity-50"
-              >
-                {actionLabel}
-              </button>
-            )}
-            <button
-              onClick={rejectReport}
-              disabled={updateMutation.isPending}
-              className="px-4 py-2.5 bg-crimson/8 hover:bg-crimson/15 text-crimson border border-crimson/20 rounded-lg text-[12px] font-arabic transition-colors disabled:opacity-50"
-            >
-              {adminT.reportQueue.actions.reject}
-            </button>
-          </div>
-        )}
+        {/* Workflow engine */}
+        <div className="p-3 bg-[#161b22] border border-white/6 rounded-xl">
+          <p className="text-[9px] uppercase tracking-wider text-white/25 mb-3 font-arabic">
+            إدارة الحالة
+          </p>
+          <WorkflowStatusManager
+            entityType="report_request"
+            entityId={report.id}
+            currentStatus={report.workflow_status}
+            invalidateKeys={[['admin', 'report-queue']]}
+            transitionFields={{
+              scheduled: [
+                { name: 'scheduled_for', label: 'تاريخ الإرسال', type: 'datetime-local', required: true },
+              ],
+            }}
+          />
+        </div>
 
         {/* Admin notes */}
         <div>
@@ -389,7 +303,7 @@ function DetailPanel({
           />
           <button
             onClick={saveNotes}
-            disabled={updateMutation.isPending}
+            disabled={notesMutation.isPending}
             className="mt-2 px-4 py-2 bg-white/6 hover:bg-white/10 text-white/60 hover:text-white/80 border border-white/8 rounded-lg text-[12px] font-arabic transition-colors disabled:opacity-50"
           >
             {adminT.reportQueue.actions.saveNotes}
@@ -419,6 +333,13 @@ function DetailPanel({
             {buildEmailPreview(report)}
           </pre>
         </div>
+
+        {/* Workflow history */}
+        <WorkflowTimeline
+          entityType="report_request"
+          entityId={report.id}
+          createdAt={report.created_at}
+        />
 
         <p className="text-[10px] text-white/20 font-arabic">
           {adminT.reportQueue.table.created}: {format(new Date(report.created_at), 'MMM d, yyyy HH:mm')}
