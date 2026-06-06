@@ -13,22 +13,67 @@ import {
   Bell,
   CheckSquare,
   CalendarPlus,
+  TrendingUp,
+  Inbox,
+  Tag,
+  UserCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { adminT } from '@/i18n/adminTranslations';
 import { NotificationBell } from './NotificationBell';
 
-const navItems = [
-  { to: '/admin',              label: adminT.nav.overview,     icon: LayoutDashboard,    end: true  },
-  { to: '/admin/founders',     label: adminT.nav.founders,     icon: UserCircle,         end: false },
-  { to: '/admin/sessions',     label: adminT.nav.sessions,     icon: CalendarClock,      end: false },
-  { to: '/admin/reports',      label: adminT.nav.reports,      icon: FileText,           end: false },
-  { to: '/admin/follow-ups',   label: adminT.nav.followUps,    icon: Bell,               end: false },
-  { to: '/admin/approvals',    label: adminT.nav.approvals,    icon: CheckSquare,        end: false },
-  { to: '/admin/bookings',     label: adminT.nav.bookings,     icon: CalendarPlus,       end: false },
-  { to: '/admin/submissions',  label: adminT.nav.submissions,  icon: Users,              end: false },
-  { to: '/admin/testimonials', label: adminT.nav.testimonials, icon: MessageSquareQuote, end: false },
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  end?: boolean;
+}
+
+interface NavGroup {
+  labelAr: string;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    labelAr: '',
+    items: [
+      { to: '/admin', label: adminT.nav.overview, icon: LayoutDashboard, end: true },
+    ],
+  },
+  {
+    labelAr: 'العمليات',
+    items: [
+      { to: '/admin/sessions',   label: adminT.nav.sessions,     icon: CalendarClock },
+      { to: '/admin/bookings',   label: adminT.nav.bookings,     icon: CalendarPlus  },
+      { to: '/admin/report-queue', label: adminT.nav.reportQueue, icon: Inbox         },
+    ],
+  },
+  {
+    labelAr: 'المبيعات',
+    items: [
+      { to: '/admin/founders',      label: adminT.nav.founders,    icon: UserCircle  },
+      { to: '/admin/valley-leads',  label: adminT.nav.valleyLeads, icon: TrendingUp  },
+    ],
+  },
+  {
+    labelAr: 'المحتوى',
+    items: [
+      { to: '/admin/approvals',    label: adminT.nav.approvals,    icon: CheckSquare       },
+      { to: '/admin/reports',      label: adminT.nav.reports,      icon: FileText          },
+      { to: '/admin/follow-ups',   label: adminT.nav.followUps,    icon: Bell              },
+      { to: '/admin/submissions',  label: adminT.nav.submissions,  icon: Users             },
+      { to: '/admin/testimonials', label: adminT.nav.testimonials, icon: MessageSquareQuote },
+    ],
+  },
+  {
+    labelAr: 'الإدارة',
+    items: [
+      { to: '/admin/promo-codes', label: adminT.nav.promoCodes, icon: Tag       },
+      { to: '/admin/team',        label: adminT.nav.team,        icon: UserCheck },
+    ],
+  },
 ];
 
 interface Props {
@@ -49,13 +94,13 @@ export function AdminLayout({ children, title, subtitle }: Props) {
   };
 
   return (
-    <div dir="rtl" className="min-h-screen bg-[#060606] flex font-arabic">
+    <div dir="rtl" className="min-h-screen bg-[#0d1117] flex font-arabic">
 
       {/* ── Sidebar ── */}
-      <aside className="w-64 shrink-0 bg-[#0b0b0b] border-l border-white/5 flex flex-col">
+      <aside className="w-64 shrink-0 bg-[#0a0d14] border-l border-white/6 flex flex-col">
 
         {/* Brand */}
-        <div className="px-6 py-7 border-b border-white/5">
+        <div className="px-6 py-7 border-b border-white/6">
           <NavLink to="/" className="flex items-center gap-3 group">
             <div className="relative">
               <Flame className="size-4 text-ember shrink-0" />
@@ -73,52 +118,52 @@ export function AdminLayout({ children, title, subtitle }: Props) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 space-y-0.5">
-          {navItems.map(({ to, label, icon: Icon, end }) => {
-            const isLegacyDivider = to === '/admin/submissions';
-            return (
-              <div key={to}>
-                {isLegacyDivider && (
-                  <div className="my-3 mx-3 flex items-center gap-2">
-                    <hr className="flex-1 border-white/5" />
-                    <span className="text-[8px] tracking-[0.25em] uppercase text-white/15">بيانات</span>
-                    <hr className="flex-1 border-white/5" />
-                  </div>
-                )}
-                <NavLink
-                  to={to}
-                  end={end}
-                  className={({ isActive }) =>
-                    cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] transition-all duration-200 group',
-                      isActive
-                        ? 'bg-ember/10 text-white border border-ember/15'
-                        : 'text-white/40 hover:text-white/80 hover:bg-white/4 border border-transparent'
-                    )
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      <Icon
-                        className={cn(
-                          'size-4 shrink-0 transition-colors',
-                          isActive ? 'text-ember' : 'text-white/30 group-hover:text-white/60'
+        <nav className="flex-1 px-3 py-4 overflow-y-auto space-y-4">
+          {navGroups.map((group) => (
+            <div key={group.labelAr || '__top'}>
+              {group.labelAr && (
+                <p className="px-3 mb-1.5 text-[9px] tracking-[0.22em] uppercase text-white/20 font-medium">
+                  {group.labelAr}
+                </p>
+              )}
+              <div className="space-y-0.5">
+                {group.items.map(({ to, label, icon: Icon, end }) => (
+                  <NavLink
+                    key={to}
+                    to={to}
+                    end={end}
+                    className={({ isActive }) =>
+                      cn(
+                        'flex items-center gap-3 px-3 py-2.5 rounded-lg text-[12px] transition-all duration-200 group',
+                        isActive
+                          ? 'bg-ember/10 text-white border border-ember/15'
+                          : 'text-white/40 hover:text-white/80 hover:bg-white/4 border border-transparent'
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon
+                          className={cn(
+                            'size-4 shrink-0 transition-colors',
+                            isActive ? 'text-ember' : 'text-white/30 group-hover:text-white/60'
+                          )}
+                        />
+                        <span className="flex-1">{label}</span>
+                        {isActive && (
+                          <ChevronLeft className="size-3 text-ember/50" />
                         )}
-                      />
-                      <span className="flex-1">{label}</span>
-                      {isActive && (
-                        <ChevronLeft className="size-3 text-ember/50" />
-                      )}
-                    </>
-                  )}
-                </NavLink>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </nav>
 
         {/* Footer */}
-        <div className="px-3 py-4 border-t border-white/5">
+        <div className="px-3 py-4 border-t border-white/6">
           <div className="px-3 py-2 mb-1">
             <p className="text-[10px] text-white/20 truncate">{user?.email}</p>
           </div>
@@ -137,10 +182,9 @@ export function AdminLayout({ children, title, subtitle }: Props) {
       <div className="flex-1 flex flex-col min-w-0">
 
         {/* Page header */}
-        <header className="px-8 py-5 border-b border-white/5 bg-[#080808]">
+        <header className="px-8 py-5 border-b border-white/6 bg-[#0a0d14]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              {/* RTL accent: bar is on the right side of text */}
               <div className="h-5 w-0.5 bg-ember rounded-full shrink-0" />
               <div>
                 <h1 className="text-lg font-semibold text-white leading-tight">
@@ -153,7 +197,6 @@ export function AdminLayout({ children, title, subtitle }: Props) {
                 )}
               </div>
             </div>
-            {/* Notification bell */}
             <NotificationBell />
           </div>
         </header>
