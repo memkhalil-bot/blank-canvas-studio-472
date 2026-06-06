@@ -15,6 +15,7 @@ export const WORKFLOW_TRANSITIONS: Record<EntityType, Record<string, string[]>> 
   booking_request: {
     pending:    ['reviewed', 'cancelled'],
     reviewed:   ['scheduled', 'cancelled'],
+    approved:   ['scheduled', 'cancelled'],   // legacy alias kept for backward compat
     scheduled:  ['completed', 'cancelled', 'no_show'],
     completed:  [],
     cancelled:  [],
@@ -42,6 +43,7 @@ export const WORKFLOW_STATUS_LABELS: Record<EntityType, Record<string, string>> 
   booking_request: {
     pending:    'معلق',
     reviewed:   'تمت المراجعة',
+    approved:   'موافق عليه',
     scheduled:  'مجدول',
     completed:  'مكتمل',
     cancelled:  'ملغى',
