@@ -24,6 +24,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { WorkflowStatusManager } from '@/components/admin/WorkflowStatusManager';
+import { WorkflowTimeline } from '@/components/admin/WorkflowTimeline';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -221,6 +223,7 @@ function ConfirmSessionModal({
           scheduled_at:      scheduledAt,
           duration_minutes:  duration,
           status:            'confirmed',
+          workflow_status:   'scheduled',
           notes:             notes || null,
           source_booking_id: booking.id,
           meeting_method:    method,
@@ -502,10 +505,6 @@ function DetailPanel({
   const [savingNotes, setSavingNotes] = useState(false);
   const update = useUpdateBooking();
 
-  const handleStatusChange = (status: string) => {
-    update.mutate({ id: booking.id, updates: { status } });
-  };
-
   const handleSaveNotes = async () => {
     setSavingNotes(true);
     await update.mutateAsync({ id: booking.id, updates: { admin_notes: notes } });
@@ -513,12 +512,6 @@ function DetailPanel({
   };
 
   const canConfirm = ['pending', 'approved'].includes(booking.status);
-
-  const statusActions = [
-    { key: 'approved',  label: adminT.bookings.actions.approve,  show: booking.status === 'pending' },
-    { key: 'completed', label: adminT.bookings.actions.complete,  show: booking.status === 'scheduled' },
-    { key: 'cancelled', label: adminT.bookings.actions.cancel,    show: !['completed','cancelled'].includes(booking.status) },
-  ].filter((a) => a.show);
 
   return (
     <motion.div
@@ -625,34 +618,16 @@ function DetailPanel({
           <p className="text-sm text-white/65 leading-relaxed font-arabic">{booking.description}</p>
         </div>
 
-        {/* Status actions (non-confirm) */}
-        {statusActions.length > 0 && (
-          <div>
-            <p className="text-[10px] text-white/30 uppercase tracking-widest mb-2 font-arabic">
-              {adminT.bookings.table.actions}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {statusActions.map((a) => {
-                const isDanger = a.key === 'cancelled';
-                return (
-                  <button
-                    key={a.key}
-                    onClick={() => handleStatusChange(a.key)}
-                    disabled={update.isPending}
-                    className={cn(
-                      'px-3 py-1.5 rounded-lg text-[11px] border transition-all font-arabic disabled:opacity-50',
-                      isDanger
-                        ? 'border-crimson/25 text-crimson hover:bg-crimson/10'
-                        : 'border-ember/25 text-ember hover:bg-ember/10'
-                    )}
-                  >
-                    {a.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Workflow status manager */}
+        <div className="p-3 bg-[#0f0f0f] border border-white/6 rounded-xl">
+          <p className="text-[9px] uppercase tracking-wider text-white/25 mb-3 font-arabic">إدارة الحالة</p>
+          <WorkflowStatusManager
+            entityType="booking_request"
+            entityId={booking.id}
+            currentStatus={booking.status}
+            invalidateKeys={[['admin', 'bookings']]}
+          />
+        </div>
 
         {/* Admin notes */}
         <div>
@@ -674,6 +649,13 @@ function DetailPanel({
             {savingNotes ? adminT.common.loading : adminT.bookings.actions.saveNotes}
           </button>
         </div>
+
+        {/* Workflow history */}
+        <WorkflowTimeline
+          entityType="booking_request"
+          entityId={booking.id}
+          createdAt={booking.created_at}
+        />
       </div>
     </motion.div>
   );

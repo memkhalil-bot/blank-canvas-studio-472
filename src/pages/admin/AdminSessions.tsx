@@ -18,6 +18,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, isToday, isFuture, isPast, isThisWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { WorkflowStatusManager } from '@/components/admin/WorkflowStatusManager';
+import { WorkflowTimeline } from '@/components/admin/WorkflowTimeline';
 
 // ── Extended session type (includes columns added by booking_session_workflow) ──
 
@@ -39,6 +41,7 @@ interface ExtendedSession {
   source_booking_id: string | null;
   meeting_method:    string | null;
   meeting_link:      string | null;
+  workflow_status:   string | null;
 }
 
 // ── Calendar helpers ──────────────────────────────────────────────────────────
@@ -267,57 +270,101 @@ function SessionTableRow({ row }: { row: ExtendedSession }) {
 // ── Calendar card ─────────────────────────────────────────────────────────────
 
 function CalendarCard({ session }: { session: ExtendedSession }) {
+  const [expanded, setExpanded] = useState(false);
+  const wfStatus = session.workflow_status ?? 'scheduled';
+
   return (
-    <div className="flex items-start gap-4 p-4 bg-[#0d0d0d] border border-white/6 rounded-xl hover:border-white/10 transition-colors">
-      {/* Time column */}
-      <div className="w-14 shrink-0 text-center">
-        {session.scheduled_at ? (
-          <>
-            <p className="text-white/70 text-sm font-mono">{format(new Date(session.scheduled_at), 'HH:mm')}</p>
-            <p className="text-white/25 text-[10px]">{format(new Date(session.scheduled_at), 'MMM d')}</p>
-          </>
-        ) : (
-          <p className="text-white/20 text-xs font-arabic">—</p>
-        )}
-      </div>
-
-      {/* Divider */}
-      <div className="w-px self-stretch bg-white/6 shrink-0" />
-
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap mb-1.5">
-          <p className="text-white/80 text-sm font-arabic font-medium">{session.founder_name}</p>
-          {session.company && (
-            <p className="text-white/30 text-xs font-arabic">· {session.company}</p>
+    <div className="bg-[#0d0d0d] border border-white/6 rounded-xl hover:border-white/10 transition-colors overflow-hidden">
+      <div className="flex items-start gap-4 p-4">
+        {/* Time column */}
+        <div className="w-14 shrink-0 text-center">
+          {session.scheduled_at ? (
+            <>
+              <p className="text-white/70 text-sm font-mono">{format(new Date(session.scheduled_at), 'HH:mm')}</p>
+              <p className="text-white/25 text-[10px]">{format(new Date(session.scheduled_at), 'MMM d')}</p>
+            </>
+          ) : (
+            <p className="text-white/20 text-xs font-arabic">—</p>
           )}
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <TypeBadge type={session.session_type} />
-          <StatusBadge status={session.status} />
-          {session.meeting_method && (
-            <span className="inline-flex items-center gap-1 text-[10px] text-white/40 font-arabic">
-              <MeetingMethodIcon method={session.meeting_method} />
-              {adminT.sessions.meetingMethods[session.meeting_method] ?? session.meeting_method}
-              {session.meeting_link && (
-                <a
-                  href={session.meeting_link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sky-400/60 hover:text-sky-400 ms-0.5"
-                >
-                  <Link2 className="size-2.5" />
-                </a>
-              )}
-            </span>
+
+        {/* Divider */}
+        <div className="w-px self-stretch bg-white/6 shrink-0" />
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+            <p className="text-white/80 text-sm font-arabic font-medium">{session.founder_name}</p>
+            {session.company && (
+              <p className="text-white/30 text-xs font-arabic">· {session.company}</p>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <TypeBadge type={session.session_type} />
+            <StatusBadge status={session.status} />
+            {session.meeting_method && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-white/40 font-arabic">
+                <MeetingMethodIcon method={session.meeting_method} />
+                {adminT.sessions.meetingMethods[session.meeting_method] ?? session.meeting_method}
+                {session.meeting_link && (
+                  <a
+                    href={session.meeting_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sky-400/60 hover:text-sky-400 ms-0.5"
+                  >
+                    <Link2 className="size-2.5" />
+                  </a>
+                )}
+              </span>
+            )}
+          </div>
+          {session.duration_minutes && (
+            <p className="text-white/25 text-[10px] mt-1">{session.duration_minutes} دقيقة</p>
           )}
         </div>
-        {session.duration_minutes && (
-          <p className="text-white/25 text-[10px] mt-1">{session.duration_minutes} دقيقة</p>
-        )}
+
+        <div className="flex items-center gap-2 shrink-0">
+          <SourceBadge sourceBookingId={session.source_booking_id} />
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className="p-1 rounded-md text-white/25 hover:text-white/60 hover:bg-white/5 transition-colors"
+            aria-label="تفاصيل سير العمل"
+          >
+            <ChevronDown className={cn('size-3.5 transition-transform', expanded && 'rotate-180')} />
+          </button>
+        </div>
       </div>
 
-      <SourceBadge sourceBookingId={session.source_booking_id} />
+      {/* Expandable workflow section */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden border-t border-white/5"
+          >
+            <div className="p-4 space-y-4" dir="rtl">
+              <div>
+                <p className="text-[9px] uppercase tracking-wider text-white/25 mb-3 font-arabic">إدارة الحالة</p>
+                <WorkflowStatusManager
+                  entityType="advisory_session"
+                  entityId={session.id}
+                  currentStatus={wfStatus}
+                  invalidateKeys={[['admin', 'sessions']]}
+                />
+              </div>
+              <WorkflowTimeline
+                entityType="advisory_session"
+                entityId={session.id}
+                createdAt={session.created_at ?? undefined}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -404,6 +451,7 @@ function NewSessionPanel({ onClose }: { onClose: () => void }) {
         risk_level:      riskLevel || null,
         notes:           notes || null,
         status:          'pending',
+        workflow_status: 'scheduled',
       });
       if (error) throw error;
     },
