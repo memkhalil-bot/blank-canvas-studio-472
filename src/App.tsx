@@ -56,6 +56,7 @@ const AdminServices         = lazy(() => import("./pages/admin/AdminServices"));
 const AdminReportTemplates  = lazy(() => import("./pages/admin/AdminReportTemplates"));
 const AdminRetargeting      = lazy(() => import("./pages/admin/AdminRetargeting"));
 const AdminActivityLog      = lazy(() => import("./pages/admin/AdminActivityLog"));
+const AdminFailKit          = lazy(() => import("./pages/admin/AdminFailKit"));
 const BookSession           = lazy(() => import("./pages/BookSession"));
 
 const queryClient = new QueryClient();
@@ -170,6 +171,7 @@ function RootRouter() {
           <Route path="/admin/report-templates"  element={<ProtectedAdminRoute><AdminReportTemplates /></ProtectedAdminRoute>} />
           <Route path="/admin/retargeting"       element={<ProtectedAdminRoute><AdminRetargeting /></ProtectedAdminRoute>} />
           <Route path="/admin/activity-log"      element={<ProtectedAdminRoute><AdminActivityLog /></ProtectedAdminRoute>} />
+          <Route path="/admin/fail-kit"          element={<ProtectedAdminRoute><AdminFailKit /></ProtectedAdminRoute>} />
         </Routes>
       </Suspense>
     );

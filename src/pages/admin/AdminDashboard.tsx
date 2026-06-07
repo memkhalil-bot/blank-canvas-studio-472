@@ -17,10 +17,12 @@ import {
   CalendarPlus,
   Inbox,
   ChevronLeft,
-  ChevronRight,
   Zap,
   Tag,
   Target,
+  CheckCircle2,
+  Package,
+  DollarSign,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, isPast, isToday, startOfMonth } from 'date-fns';
@@ -87,6 +89,9 @@ function useStats() {
         sessionsThisWeekRes,
         promoExpiringRes,
         retargetingRes,
+        startedAssessmentRes,
+        bookingRevenueRes,
+        reportRevenueRes,
       ] = await Promise.all([
         supabase.from('advisory_sessions').select('id', { count: 'exact' }).in('status', ['pending', 'confirmed']),
         supabase.from('follow_ups').select('id', { count: 'exact' }).eq('status', 'pending'),
@@ -131,7 +136,26 @@ function useStats() {
           .eq('completed', true)
           .eq('requested_report', false)
           .eq('requested_session', false),
+        // New: leads who started answering the assessment (KPI / funnel)
+        (supabase as any)
+          .from('valley_leads')
+          .select('id', { count: 'exact' })
+          .not('last_question_index', 'is', null),
+        // New: paid revenue — bookings + reports (KPI)
+        (supabase as any)
+          .from('booking_requests')
+          .select('final_price')
+          .eq('payment_status', 'paid'),
+        (supabase as any)
+          .from('report_requests')
+          .select('final_price')
+          .eq('payment_status', 'paid'),
       ]);
+
+      const revenueTotal = [
+        ...((bookingRevenueRes.data ?? []) as { final_price: number | null }[]),
+        ...((reportRevenueRes.data ?? []) as { final_price: number | null }[]),
+      ].reduce((acc, r) => acc + (r.final_price ?? 0), 0);
 
       return {
         totalSubmissions:    assessmentsRes.count ?? 0,
@@ -160,6 +184,8 @@ function useStats() {
         sessionsThisWeek:    sessionsThisWeekRes.count ?? 0,
         promoCodesExpiring:  promoExpiringRes.count ?? 0,
         retargetingLeads:    retargetingRes.count ?? 0,
+        startedAssessment:   startedAssessmentRes.count ?? 0,
+        revenueTotal,
       };
     },
     staleTime: 60_000,
@@ -238,72 +264,154 @@ function WorkflowBadge({ status }: { status: string | null }) {
   );
 }
 
-// ── Valley Funnel Strip ───────────────────────────────────────────────────────
+// ── KPI Row ───────────────────────────────────────────────────────────────────
 
-function FunnelStrip({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
-  const steps = [
-    {
-      label: adminT.dashboard.funnel.entries,
-      value: data?.valleyTotal,
-      color: 'text-ember',
-      bg: 'bg-ember/8',
-      border: 'border-ember/15',
-    },
-    {
-      label: adminT.dashboard.funnel.completed,
-      value: data?.valleyCompleted,
-      color: 'text-sky-400',
-      bg: 'bg-sky-400/8',
-      border: 'border-sky-400/15',
-    },
-    {
-      label: adminT.dashboard.funnel.reportRequests,
-      value: data?.reportPending,
-      color: 'text-violet-400',
-      bg: 'bg-violet-400/8',
-      border: 'border-violet-400/15',
-    },
-    {
-      label: adminT.dashboard.funnel.completedSessions,
-      value: data?.completedBookings,
-      color: 'text-recovery',
-      bg: 'bg-recovery/8',
-      border: 'border-recovery/15',
-    },
+interface KpiDef {
+  label:        string;
+  value:        number | null | undefined;
+  icon:         React.ElementType;
+  accent:       string;
+  isCurrency?:  boolean;
+  placeholder?: boolean;
+}
+
+function KpiRow({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const kpis: KpiDef[] = [
+    { label: adminT.dashboard.kpi.valleyVisitors,      value: data?.valleyTotal,       icon: TrendingUp,   accent: 'text-ember' },
+    { label: adminT.dashboard.kpi.startedAssessment,   value: data?.startedAssessment, icon: Activity,     accent: 'text-sky-400' },
+    { label: adminT.dashboard.kpi.completedAssessment, value: data?.valleyCompleted,   icon: CheckCircle2, accent: 'text-violet-400' },
+    { label: adminT.dashboard.kpi.failKitRequests,     value: null,                    icon: Package,      accent: 'text-amber-400',  placeholder: true },
+    { label: adminT.dashboard.kpi.sessionRequests,     value: data?.totalBookings,     icon: CalendarPlus, accent: 'text-recovery' },
+    { label: adminT.dashboard.kpi.threeMonthPlans,     value: null,                    icon: CalendarDays, accent: 'text-orange-400', placeholder: true },
+    { label: adminT.dashboard.kpi.revenue,             value: data?.revenueTotal,      icon: DollarSign,   accent: 'text-recovery',   isCurrency: true },
   ];
+
+  return (
+    <div className="mb-6">
+      <p className="text-[9px] tracking-[0.22em] uppercase text-white/20 mb-3 font-arabic">
+        {adminT.dashboard.kpi.title}
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-3">
+        {kpis.map((k, i) => {
+          const Icon = k.icon;
+          return (
+            <motion.div
+              key={k.label}
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="p-4 bg-[#161b22] border border-white/6 rounded-xl"
+            >
+              <Icon className={`size-4 ${k.accent} mb-3`} />
+              <div className={`text-xl font-serif-display tabular-nums mb-1 ${k.accent}`}>
+                {loading ? (
+                  <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
+                ) : k.placeholder ? (
+                  '—'
+                ) : k.isCurrency ? (
+                  `$${(k.value ?? 0).toLocaleString()}`
+                ) : (
+                  k.value ?? 0
+                )}
+              </div>
+              <p className="text-[10px] text-white/35 font-arabic leading-snug">{k.label}</p>
+              {k.placeholder && !loading && (
+                <p className="text-[8px] text-white/20 font-arabic mt-1">{adminT.dashboard.kpi.placeholderHint}</p>
+              )}
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Valley Funnel ─────────────────────────────────────────────────────────────
+
+const FUNNEL_STAGE_STYLES = [
+  { text: 'text-ember',      bar: 'bg-ember/20 border-ember/35' },
+  { text: 'text-sky-400',    bar: 'bg-sky-400/20 border-sky-400/35' },
+  { text: 'text-violet-400', bar: 'bg-violet-400/20 border-violet-400/35' },
+  { text: 'text-amber-400',  bar: 'bg-amber-400/20 border-amber-400/35' },
+  { text: 'text-recovery',   bar: 'bg-recovery/20 border-recovery/35' },
+  { text: 'text-orange-400', bar: 'bg-orange-400/20 border-orange-400/35' },
+];
+
+function FunnelSection({ data, loading }: { data: ReturnType<typeof useStats>['data']; loading: boolean }) {
+  const stages = [
+    { label: adminT.dashboard.funnel.visitors,        value: data?.valleyTotal,       placeholder: false },
+    { label: adminT.dashboard.funnel.started,         value: data?.startedAssessment, placeholder: false },
+    { label: adminT.dashboard.funnel.completed,       value: data?.valleyCompleted,   placeholder: false },
+    { label: adminT.dashboard.funnel.failKitRequests, value: 0,                       placeholder: true  },
+    { label: adminT.dashboard.funnel.sessionRequests, value: data?.totalBookings,     placeholder: false },
+    { label: adminT.dashboard.funnel.threeMonthPlans, value: 0,                       placeholder: true  },
+  ];
+
+  const base   = stages[0].value ?? 0;
+  const maxVal = Math.max(...stages.map((s) => s.value ?? 0), 1);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className="mb-8 p-1 bg-[#161b22] border border-white/6 rounded-xl"
+      className="mb-8 p-5 bg-[#161b22] border border-white/6 rounded-xl"
     >
-      <div className="flex items-center">
-        <div className="flex-1 px-4 py-2">
-          <p className="text-[9px] tracking-[0.2em] uppercase text-white/25 mb-3 pr-1">
-            {adminT.dashboard.funnel.title}
-          </p>
-          <div className="flex items-center gap-0">
-            {steps.map((step, i) => (
-              <div key={step.label} className="flex items-center flex-1">
-                <div className={`flex-1 px-4 py-3 rounded-lg ${step.bg} border ${step.border}`}>
-                  <div className={`text-2xl font-serif-display tabular-nums ${step.color} mb-0.5`}>
-                    {loading ? (
-                      <span className="inline-block w-8 h-6 bg-white/6 rounded animate-pulse" />
-                    ) : (
-                      step.value ?? 0
-                    )}
-                  </div>
-                  <p className="text-[10px] text-white/40 font-arabic">{step.label}</p>
+      <p className="text-[9px] tracking-[0.2em] uppercase text-white/25 mb-5 font-arabic">
+        {adminT.dashboard.funnel.title}
+      </p>
+
+      <div className="space-y-2.5">
+        {stages.map((stage, i) => {
+          const style      = FUNNEL_STAGE_STYLES[i];
+          const value      = stage.value ?? 0;
+          const widthPct   = loading ? 0 : Math.max(4, (value / maxVal) * 100);
+          const conversion = base > 0 ? Math.round((value / base) * 100) : 0;
+          const prevValue  = i > 0 ? (stages[i - 1].value ?? 0) : null;
+          const dropoff    = prevValue !== null && prevValue > 0
+            ? Math.round(((prevValue - value) / prevValue) * 100)
+            : null;
+
+          return (
+            <div key={stage.label}>
+              {i > 0 && dropoff !== null && (
+                <div className="flex items-center gap-1.5 pr-1 mb-1.5 ml-[9.5rem]">
+                  <span className="text-[9px] text-white/15">↓</span>
+                  <span className={cn('text-[9px] font-arabic', dropoff > 40 ? 'text-crimson/70' : 'text-white/25')}>
+                    {adminT.dashboard.funnel.dropoff} {dropoff}%
+                  </span>
                 </div>
-                {i < steps.length - 1 && (
-                  <ChevronLeft className="size-4 text-white/15 shrink-0 mx-1" />
-                )}
+              )}
+              <div className="flex items-center gap-4">
+                <p className="w-36 shrink-0 text-[11px] text-white/45 font-arabic truncate">{stage.label}</p>
+                <div className="flex-1 h-7 bg-white/4 rounded-md overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${widthPct}%` }}
+                    transition={{ duration: 0.6, delay: 0.1 + i * 0.07, ease: [0.16, 1, 0.3, 1] }}
+                    className={cn('h-full rounded-md border', style.bar)}
+                  />
+                </div>
+                <div className="w-32 shrink-0 flex items-center justify-end gap-2">
+                  <span className={cn('text-sm font-serif-display tabular-nums', style.text)}>
+                    {loading ? (
+                      <span className="inline-block w-6 h-4 bg-white/6 rounded animate-pulse" />
+                    ) : stage.placeholder ? (
+                      '—'
+                    ) : (
+                      value
+                    )}
+                  </span>
+                  {!stage.placeholder && !loading && (
+                    <span className="text-[9px] text-white/25 font-arabic tabular-nums">
+                      {adminT.dashboard.funnel.conversion} {conversion}%
+                    </span>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          );
+        })}
       </div>
     </motion.div>
   );
@@ -315,20 +423,6 @@ export default function AdminDashboard() {
   const { data, isLoading, error } = useStats();
 
   const stats = [
-    {
-      label: adminT.dashboard.stats.valleyEntries,
-      value: data?.valleyTotal ?? '—',
-      icon: TrendingUp,
-      to: '/admin/valley-leads',
-      accent: 'text-ember',
-    },
-    {
-      label: adminT.dashboard.stats.completedDiagnostics,
-      value: data?.valleyCompleted ?? '—',
-      icon: Activity,
-      to: '/admin/valley-leads',
-      accent: 'text-sky-400',
-    },
     {
       label: adminT.dashboard.stats.abandonedLeads,
       value: data?.valleyAbandoned ?? '—',
@@ -356,13 +450,6 @@ export default function AdminDashboard() {
       icon: Bell,
       to: '/admin/follow-ups',
       accent: 'text-violet-400',
-    },
-    {
-      label: adminT.dashboard.stats.totalBookings,
-      value: data?.totalBookings ?? '—',
-      icon: CalendarPlus,
-      to: '/admin/bookings',
-      accent: 'text-ember',
     },
     {
       label: adminT.dashboard.stats.pendingBookings,
@@ -441,8 +528,11 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Valley Funnel Strip */}
-      <FunnelStrip data={data} loading={isLoading} />
+      {/* KPI row */}
+      <KpiRow data={data} loading={isLoading} />
+
+      {/* Valley Funnel */}
+      <FunnelSection data={data} loading={isLoading} />
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-8">

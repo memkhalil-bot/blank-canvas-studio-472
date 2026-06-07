@@ -19,7 +19,10 @@ import {
   ArrowLeft,
   Zap,
   LayoutDashboard,
+  Package,
+  Skull,
 } from 'lucide-react';
+import { adminT } from '@/i18n/adminTranslations';
 
 // ── Priority system ───────────────────────────────────────────────────────────
 
@@ -279,6 +282,22 @@ interface SessionItem {
   priority: Priority;
 }
 
+interface HighRiskLeadItem {
+  id: string;
+  name: string | null;
+  company: string | null;
+  risk_level: string | null;
+  risk_score: number | null;
+  created_at: string;
+  priority: Priority;
+}
+
+// Placeholder type — Fail Kit has no backing table yet (structural section only)
+interface FailKitApprovalItem {
+  id: string;
+  priority: Priority;
+}
+
 interface ActionData {
   bookings:          BookingItem[];
   reportsReview:     ReportReviewItem[];
@@ -287,6 +306,8 @@ interface ActionData {
   followUpsToday:    FollowUpItem[];
   expiringPromos:    PromoItem[];
   awaitingSessions:  SessionItem[];
+  highRiskLeads:     HighRiskLeadItem[];
+  failKitApprovals:  FailKitApprovalItem[];
 }
 
 // ── Unified query ─────────────────────────────────────────────────────────────
@@ -308,6 +329,7 @@ function useActionItems() {
         followUpsRes,
         promosRes,
         sessionsRes,
+        highRiskLeadsRes,
       ] = await Promise.all([
         // A) Pending booking requests
         (supabase as any)
@@ -362,6 +384,14 @@ function useActionItems() {
           .select('id, founder_name, company, session_type, created_at')
           .eq('status', 'pending')
           .order('created_at', { ascending: true }),
+
+        // H) High-risk leads (recent assessments at high risk levels)
+        supabase
+          .from('founder_assessments')
+          .select('id, name, company, risk_level, risk_score, created_at')
+          .in('risk_level', ['COLLAPSE PROXIMITY', 'INSIDE THE VALLEY'])
+          .order('created_at', { ascending: false })
+          .limit(8),
       ]);
 
       // A) Bookings — critical if > 48 h old
@@ -425,6 +455,15 @@ function useActionItems() {
         priority: 'high' as Priority,
       }));
 
+      // H) High-risk leads — critical if at collapse proximity, otherwise high
+      const highRiskLeads: HighRiskLeadItem[] = ((highRiskLeadsRes.data ?? []) as any[]).map((r) => ({
+        ...r,
+        priority: r.risk_level === 'COLLAPSE PROXIMITY' ? 'critical' : 'high',
+      }));
+
+      // I) Fail Kit approvals — placeholder section, no backing table yet
+      const failKitApprovals: FailKitApprovalItem[] = [];
+
       return {
         bookings,
         reportsReview,
@@ -433,6 +472,8 @@ function useActionItems() {
         followUpsToday,
         expiringPromos,
         awaitingSessions,
+        highRiskLeads,
+        failKitApprovals,
       };
     },
     staleTime: 60_000,
@@ -551,6 +592,8 @@ export default function AdminActionCenter() {
     followUpsToday:   data?.followUpsToday.length     ?? 0,
     expiringPromos:   data?.expiringPromos.length     ?? 0,
     awaitingSessions: data?.awaitingSessions.length   ?? 0,
+    highRiskLeads:    data?.highRiskLeads.length      ?? 0,
+    failKitApprovals: data?.failKitApprovals.length   ?? 0,
   };
 
   const totalActions = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -599,7 +642,7 @@ export default function AdminActionCenter() {
         </div>
         <div className="flex items-start gap-2 flex-wrap">
           {isLoading ? (
-            [...Array(7)].map((_, i) => (
+            [...Array(9)].map((_, i) => (
               <div key={i} className="w-[90px] h-[62px] bg-white/4 rounded-xl animate-pulse" />
             ))
           ) : (
@@ -611,6 +654,8 @@ export default function AdminActionCenter() {
               <OverviewChip label="متابعات اليوم"          count={counts.followUpsToday}   accent="text-ember" />
               <OverviewChip label="أكواد منتهية قريباً"    count={counts.expiringPromos}   accent="text-orange-400" />
               <OverviewChip label="جلسات بانتظار التأكيد"  count={counts.awaitingSessions} accent="text-sky-300" />
+              <OverviewChip label="مؤسسون عالي المخاطر"    count={counts.highRiskLeads}    accent="text-crimson" />
+              <OverviewChip label="حقائب فشل للموافقة"     count={counts.failKitApprovals} accent="text-white/40" />
             </>
           )}
         </div>
@@ -840,6 +885,51 @@ export default function AdminActionCenter() {
               </ActionItemCard>
             )}
           />
+
+          {/* H) High-Risk Leads */}
+          <ActionSection
+            title="مؤسسون عالي المخاطر"
+            icon={Skull}
+            items={data?.highRiskLeads ?? []}
+            renderItem={(item) => (
+              <ActionItemCard
+                key={item.id}
+                priority={item.priority}
+                actionLabel="عرض الملف"
+                actionTo="/admin/founders"
+              >
+                <p className="text-[13px] text-white/85 font-arabic leading-snug">
+                  {item.name ?? '—'}
+                </p>
+                <div className="flex items-center gap-2 mt-1 flex-wrap">
+                  {item.company && (
+                    <span className="text-[11px] text-white/40 font-arabic">{item.company}</span>
+                  )}
+                  <RiskBadge level={item.risk_level} />
+                  {item.risk_score != null && (
+                    <span className="text-[10px] text-white/30 tabular-nums">{item.risk_score}/100</span>
+                  )}
+                </div>
+                <p className="text-[10px] text-white/25 mt-1">{relAge(item.created_at)}</p>
+              </ActionItemCard>
+            )}
+          />
+
+          {/* I) Fail Kits Awaiting Approval — structural placeholder, no data source yet */}
+          <div className="bg-[#0f141c] border border-white/5 rounded-xl mb-4 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4">
+              <div className="flex items-center gap-3">
+                <Package className="size-4 shrink-0 text-white/20" />
+                <h2 className="text-[12px] font-medium text-white/70 font-arabic">حقائب فشل بانتظار الموافقة</h2>
+                <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded text-[9px] font-semibold border font-arabic bg-white/5 text-white/25 border-white/6">
+                  0
+                </span>
+              </div>
+            </div>
+            <div className="px-5 pb-5">
+              <p className="text-[11px] text-white/25 font-arabic text-center py-2">{adminT.failKit.notice}</p>
+            </div>
+          </div>
 
         </motion.div>
       )}
