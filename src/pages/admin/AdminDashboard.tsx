@@ -298,6 +298,48 @@ function useRevenueSnapshotExtra() {
   });
 }
 
+// Supplementary query for the homepage Promo Snapshot widget — minimal columns
+// needed to compute "active codes", "most used code" and "revenue impact"
+// (mirrors the linked-order pattern established for promo analytics).
+function usePromoSnapshotExtra() {
+  return useQuery({
+    queryKey: ['admin', 'promo-snapshot-extra'],
+    queryFn: async () => {
+      const [codesRes, bookingsRes, failKitsRes] = await Promise.all([
+        (supabase as any).from('promo_codes').select('id, code, used_count, active, starts_at, ends_at'),
+        (supabase as any).from('booking_requests').select('final_price, payment_status, promo_code_id').not('promo_code_id', 'is', null),
+        (supabase as any).from('fail_kit_requests').select('final_price, payment_status, promo_code_id').not('promo_code_id', 'is', null),
+      ]);
+      if (codesRes.error) throw codesRes.error;
+      if (bookingsRes.error) throw bookingsRes.error;
+      if (failKitsRes.error) throw failKitsRes.error;
+
+      const codes = (codesRes.data ?? []) as { id: string; code: string; used_count: number; active: boolean; starts_at: string | null; ends_at: string | null }[];
+      const now = new Date();
+      const activeCount = codes.filter((c) => {
+        if (!c.active) return false;
+        if (c.ends_at && new Date(c.ends_at) < now) return false;
+        if (c.starts_at && new Date(c.starts_at) > now) return false;
+        return true;
+      }).length;
+
+      const mostUsed = codes.filter((c) => c.used_count > 0).sort((a, b) => b.used_count - a.used_count)[0] ?? null;
+
+      const linkedOrders = [...(bookingsRes.data ?? []), ...(failKitsRes.data ?? [])] as { final_price: number | null; payment_status: string | null }[];
+      const revenueImpact = linkedOrders
+        .filter((o) => o.payment_status === 'paid')
+        .reduce((acc, o) => acc + (o.final_price ?? 0), 0);
+
+      return {
+        activeCount,
+        mostUsed: mostUsed as { code: string; used_count: number } | null,
+        revenueImpact,
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const riskColors: Record<string, string> = {
@@ -688,12 +730,93 @@ function WorkflowSnapshotWidget({ data, loading }: { data: ReturnType<typeof use
   );
 }
 
+// ── Promo Snapshot ────────────────────────────────────────────────────────────
+
+function PromoSnapshotWidget({
+  data, extra, loading,
+}: {
+  data:    ReturnType<typeof useStats>['data'];
+  extra:   ReturnType<typeof usePromoSnapshotExtra>['data'];
+  loading: boolean;
+}) {
+  const { t: adminT } = useAdminLanguage();
+  const ps = adminT.dashboard.promoSnapshot;
+  const mostUsed = extra?.mostUsed ?? null;
+  const expiring = data?.promoCodesExpiring ?? 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="p-5 bg-admin-card border border-admin-border rounded-2xl shadow-sm shadow-black/10"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-[9px] tracking-[0.22em] uppercase text-admin-text-muted/70 font-arabic flex items-center gap-2">
+          <Tag className="size-3 text-admin-text-muted/50" />
+          {ps.title}
+        </p>
+        <Link to="/admin/promo-codes" className="text-[10px] text-admin-text-muted hover:text-admin-text transition-colors font-arabic flex items-center gap-1 shrink-0">
+          {ps.viewFull}
+          <ChevronLeft className="size-3" />
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.activeCodes}</p>
+          {loading ? (
+            <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className="text-base font-serif-display tabular-nums text-admin-text">{extra?.activeCount ?? 0}</p>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.expiringSoon}</p>
+          {loading ? (
+            <span className="inline-block w-10 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className={cn('text-base font-serif-display tabular-nums', expiring > 0 ? 'text-amber-400' : 'text-admin-text')}>
+              {expiring}
+            </p>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.mostUsedCode}</p>
+          {loading ? (
+            <span className="inline-block w-16 h-5 bg-white/6 rounded animate-pulse" />
+          ) : mostUsed ? (
+            <p className="flex items-center gap-1.5 text-sm text-admin-text">
+              <code className="font-mono text-xs bg-white/6 px-1.5 py-0.5 rounded">{mostUsed.code}</code>
+              <span className="text-[10px] text-admin-text-muted tabular-nums">×{mostUsed.used_count}</span>
+            </p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-admin-text-muted">
+              <Minus className="size-3" />
+              <span className="text-[11px] font-arabic">{ps.noData}</span>
+            </span>
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="text-[9px] uppercase tracking-[0.16em] text-admin-text-muted/60 font-arabic mb-1.5 truncate">{ps.revenueImpact}</p>
+          {loading ? (
+            <span className="inline-block w-14 h-5 bg-white/6 rounded animate-pulse" />
+          ) : (
+            <p className="text-base font-serif-display tabular-nums text-admin-text">${(extra?.revenueImpact ?? 0).toLocaleString()}</p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function AdminDashboard() {
   const { t: adminT } = useAdminLanguage();
   const { data, isLoading, error } = useStats();
   const { data: revenueExtra, isLoading: revenueExtraLoading } = useRevenueSnapshotExtra();
+  const { data: promoExtra, isLoading: promoExtraLoading } = usePromoSnapshotExtra();
 
   const stats = [
     {
@@ -810,10 +933,11 @@ export default function AdminDashboard() {
       {/* Valley Funnel */}
       <FunnelSection data={data} loading={isLoading} />
 
-      {/* Revenue & Workflow snapshots */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 mb-8">
+      {/* Revenue, Workflow & Promo snapshots */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 mb-8">
         <RevenueSnapshotWidget data={data} extra={revenueExtra} loading={isLoading || revenueExtraLoading} />
         <WorkflowSnapshotWidget data={data} loading={isLoading} />
+        <PromoSnapshotWidget data={data} extra={promoExtra} loading={isLoading || promoExtraLoading} />
       </div>
 
       {/* Stat cards */}
