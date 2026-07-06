@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, CheckCircle2, AlertCircle, Tag } from 'lucide-react';
+import { CheckCircle2, AlertCircle, Tag, ArrowUpRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { cn } from '@/lib/utils';
+import bookCallPhone from '@/assets/book-call-phone.png';
+import bookCallPhoneWebp from '@/assets/book-call-phone.webp';
 
 // ── Copy ─────────────────────────────────────────────────────────────────────
 
@@ -17,9 +19,17 @@ const copy = {
   en: {
     metaTitle: 'Book a Session — Khabeer Al Fashal',
     metaDesc:  'Request a private session with Khabeer Al Fashal.',
-    eyebrow:   'Session Intake',
+    eyebrow:   'Private Session · جلسة مغلقة',
     heading:   'Request a Session.',
     sub:       'Tell us where you stand and what worries you most — we will reach back with the next step.',
+    sessionInfo: 'Private session · Secure booking · Focused on your highest-risk failure patterns',
+    pillars: [
+      { k: 'Private', v: 'Nothing leaves the room. No notes shared.' },
+      { k: 'Direct',  v: 'I will tell you what your team will not.' },
+      { k: 'Honest',  v: 'No clichés. No theater. Just the truth on the table.' },
+    ],
+    formLabel:   'Intake · استمارة',
+    formHeading: "Tell me what's actually happening.",
     privacy:   '100% confidential · No investor disclosure · No spam',
     stages: [
       { v: 'idea',         label: 'Idea / Pre-build' },
@@ -36,27 +46,37 @@ const copy = {
       painPointHint: 'What worries you most right now? Be direct — the more honest the intake, the sharper the session.',
     },
     placeholders: {
-      fullName:   'Mohamed K.',
-      email:      'you@company.com',
-      painPoint:  'The numbers say one thing. My gut says another…',
+      fullName:  'Mohamed K.',
+      email:     'you@company.com',
+      painPoint: 'The numbers say one thing. My gut says another…',
     },
-    promoCode:         'Promo Code (optional)',
-    promoPlaceholder:  'FAIL01',
-    promoValidating:   'Validating…',
-    promoApplied:      'Code applied',
-    promoInvalid:      'Invalid or expired code',
-    submit:     'Submit Request',
-    submitting: 'Submitting…',
-    successHeading: 'Your session request has been received.',
-    successBody:    'We will review your case and respond with the next step.',
-    errorGeneric:   'Something went wrong. Please try again.',
+    promoCode:        'Promo Code (optional)',
+    promoPlaceholder: 'FAIL01',
+    promoValidating:  'Validating…',
+    promoApplied:     'Code applied',
+    promoInvalid:     'Invalid or expired code',
+    submit:           'Request the Session',
+    submitting:       'Submitting…',
+    submitDisclaimer: 'Submitting does not guarantee a session. I take a limited number of cases each month based on fit.',
+    successHeading:   'Your session request has been received.',
+    successBody:      'We will review your case and respond with the next step.',
+    errorGeneric:     'Something went wrong. Please try again.',
+    closingQuote:     '"Save it before it becomes another case study."',
   },
   ar: {
     metaTitle: 'احجز جلسة — خبير الفشل',
     metaDesc:  'اطلب جلسة خاصة مع خبير الفشل.',
-    eyebrow:   'استمارة الحجز',
+    eyebrow:   'جلسة مغلقة',
     heading:   'اطلب جلسة.',
     sub:       'شاركنا وضعك الحالي وما يقلقك أكثر — وسنعود إليك بالخطوة التالية.',
+    sessionInfo: 'جلسة مغلقة · حجز آمن · مُركَّزة على أخطر أنماط الفشل في شركتك',
+    pillars: [
+      { k: 'سرية مطلقة',     v: 'لا شيء يخرج من الغرفة، ولا ملاحظات تُشارَك مع أي جهة.' },
+      { k: 'مواجهة مباشرة',  v: 'سأخبرك بما لا يستطيع فريقك قوله في وجهك.' },
+      { k: 'الحقيقة العارية', v: 'بلا كليشيهات. بلا مسرحيات. فقط الحقائق على الطاولة.' },
+    ],
+    formLabel:   'بوابة الحجز الخاص',
+    formHeading: 'أخبرني بما يقلقك فعلاً.',
     privacy:   'سرية كاملة · لا مشاركة مع المستثمرين · لا رسائل مزعجة',
     stages: [
       { v: 'idea',         label: 'فكرة / ما قبل البناء' },
@@ -73,20 +93,22 @@ const copy = {
       painPointHint: 'ما الذي يقلقك أكثر من أي شيء الآن؟ كن مباشراً، كلما كان الإدخال أصدق كانت الجلسة أحدّ.',
     },
     placeholders: {
-      fullName:   'محمد خ.',
-      email:      'you@company.com',
-      painPoint:  'الأرقام تقول شيئاً. حدسي يقول شيئاً آخر...',
+      fullName:  'محمد خ.',
+      email:     'you@company.com',
+      painPoint: 'الأرقام تقول شيئاً. حدسي يقول شيئاً آخر...',
     },
-    promoCode:         'كود الخصم (اختياري)',
-    promoPlaceholder:  'FAIL01',
-    promoValidating:   'جارٍ التحقق...',
-    promoApplied:      'تم تطبيق الكود',
-    promoInvalid:      'الكود غير صالح أو منتهي الصلاحية',
-    submit:     'إرسال الطلب',
-    submitting: 'جارٍ الإرسال...',
-    successHeading: 'تم استلام طلب الجلسة.',
-    successBody:    'سنراجع حالتك ونعود إليك بالخطوة التالية.',
-    errorGeneric:   'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
+    promoCode:        'كود الخصم (اختياري)',
+    promoPlaceholder: 'FAIL01',
+    promoValidating:  'جارٍ التحقق...',
+    promoApplied:     'تم تطبيق الكود',
+    promoInvalid:     'الكود غير صالح أو منتهي الصلاحية',
+    submit:           'إرسال الطلب',
+    submitting:       'جارٍ الإرسال...',
+    submitDisclaimer: 'ملاحظة: إرسال الطلب لا يضمن قبول الجلسة. أقبل عدداً محدوداً من الحالات شهرياً.',
+    successHeading:   'تم استلام طلب الجلسة.',
+    successBody:      'سنراجع حالتك ونعود إليك بالخطوة التالية.',
+    errorGeneric:     'حدث خطأ ما. يرجى المحاولة مرة أخرى.',
+    closingQuote:     '"أنقذها الآن.. قبل أن تتحول إلى دراسة حالة فشل أخرى."',
   },
 } as const;
 
@@ -331,245 +353,341 @@ export default function BookSession() {
   const inputClass = cn(inputBase, isRTL && 'font-arabic text-right');
 
   return (
-    <div className={cn('dark bg-[#080808] text-white min-h-screen', isRTL ? 'font-arabic' : 'font-sans-ui')}>
+    <div className={cn('dark bg-black text-white min-h-screen', isRTL ? 'font-arabic' : 'font-sans-ui')}>
       <SEOHead title={c.metaTitle} description={c.metaDesc} />
 
-      {/* Ambient glow */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-ember/5 rounded-full blur-[100px]" />
-      </div>
+      {/* ── HERO ─────────────────────────────────────────────────────── */}
+      <section className="relative pt-32 md:pt-40 pb-20 px-6 lg:px-12 overflow-hidden border-b border-white/5">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(18_92%_55%/0.12),transparent_65%)]" />
+        <div className="relative max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
-      <div className="relative max-w-2xl mx-auto px-6 py-20 md:py-32">
-
-        {/* Brand mark */}
-        <div className={cn('flex items-center gap-3 mb-14', isRTL && 'flex-row-reverse justify-end')}>
-          <Flame className="size-5 text-ember shrink-0" />
-          <div className={isRTL ? 'text-right' : undefined}>
-            <p className={cn(
-              'text-[11px] text-white font-medium',
-              isRTL ? 'tracking-normal' : 'tracking-[0.3em] uppercase'
+          {/* Text column */}
+          <motion.div
+            initial={{ opacity: 0, x: isRTL ? 40 : -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+            className={cn('order-2 lg:order-1', isRTL && 'text-right')}
+          >
+            <div className={cn('flex items-center gap-3 mb-8', isRTL && 'flex-row-reverse')}>
+              <span className="h-px w-12 bg-ember" />
+              <span className={cn(
+                'uppercase text-ember font-medium',
+                isRTL ? 'font-arabic tracking-normal text-sm' : 'text-xs tracking-[0.3em]'
+              )}>
+                {c.eyebrow}
+              </span>
+            </div>
+            <h1 className={cn(
+              'tracking-tight',
+              isRTL
+                ? 'font-arabic font-bold text-4xl md:text-6xl lg:text-7xl leading-[1.3]'
+                : 'font-serif-display text-5xl md:text-7xl lg:text-8xl'
             )}>
-              خبير الفشل
+              {c.heading}
+            </h1>
+            <p className={cn(
+              'mt-8 text-lg md:text-xl text-white/55 max-w-xl font-light',
+              isRTL ? 'leading-[2.2]' : 'leading-relaxed'
+            )}>
+              {c.sub}
             </p>
             <p className={cn(
-              'text-[9px] text-white/25 mt-0.5',
-              isRTL ? 'tracking-normal text-xs' : 'tracking-[0.25em] uppercase'
+              'mt-8 text-white/35 border-t border-white/[0.06] pt-6',
+              isRTL ? 'font-arabic text-sm leading-[2]' : 'text-[10px] uppercase tracking-[0.28em]'
             )}>
-              {c.eyebrow}
+              {c.sessionInfo}
             </p>
-          </div>
-        </div>
+          </motion.div>
 
-        {/* Heading */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          className={cn('mb-12', isRTL && 'text-right')}
-        >
-          <h1 className={cn(
-            'leading-tight mb-4',
-            isRTL
-              ? 'font-arabic font-bold text-4xl md:text-5xl leading-[1.4]'
-              : 'font-serif-display text-4xl md:text-6xl'
-          )}>
-            {c.heading}
-          </h1>
-          <p className={cn(
-            'text-base text-white/50 font-light',
-            isRTL && 'leading-[2]'
-          )}>
-            {c.sub}
-          </p>
-        </motion.div>
-
-        {/* Success state */}
-        <AnimatePresence>
-          {success && (
-            <motion.div
-              initial={{ opacity: 0, y: 16, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className={cn(
-                'mb-10 p-8 border border-recovery/20 bg-recovery/5 rounded-2xl',
-                isRTL && 'text-right'
-              )}
-            >
-              <div className={cn('flex items-center gap-4 mb-4', isRTL && 'flex-row-reverse')}>
-                <div className="size-10 rounded-full bg-recovery/15 border border-recovery/25 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="size-5 text-recovery" />
-                </div>
-                <h2 className={cn(
-                  'text-lg text-white font-medium',
-                  isRTL ? 'font-arabic' : 'font-serif-display'
-                )}>
-                  {c.successHeading}
-                </h2>
+          {/* Phone column */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+            className={cn('relative', isRTL ? 'order-2 lg:order-1' : 'order-1 lg:order-2')}
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,hsl(18_92%_55%/0.22),transparent_65%)] blur-3xl" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,hsl(18_92%_55%/0.10),transparent_60%)] blur-xl" />
+            <div className="relative w-full max-w-lg mx-auto">
+              <div className="pointer-events-none absolute left-[42%] top-[14%] -translate-x-1/2 -translate-y-1/2 z-0">
+                {[0, 1, 2].map((i) => (
+                  <span
+                    key={i}
+                    className="absolute left-1/2 top-1/2 block rounded-full border border-ember/40 animate-ripple"
+                    style={{ width: 40, height: 40, marginLeft: -20, marginTop: -20, animationDelay: `${i * 1.2}s` }}
+                  />
+                ))}
               </div>
-              <p className={cn('text-white/55 font-light', isRTL && 'leading-[2]')}>
-                {c.successBody}
+              <svg
+                className="pointer-events-none absolute left-[30%] top-[6%] w-24 h-24 z-0 text-ember/60"
+                viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round"
+              >
+                <path d="M20 70 Q50 30 80 70" className="animate-arc" style={{ animationDelay: '0s' }} />
+                <path d="M30 75 Q50 45 70 75" className="animate-arc" style={{ animationDelay: '0.6s' }} />
+                <path d="M40 80 Q50 60 60 80" className="animate-arc" style={{ animationDelay: '1.2s' }} />
+              </svg>
+              <picture>
+                <source srcSet={bookCallPhoneWebp} type="image/webp" />
+                <img
+                  src={bookCallPhone}
+                  alt="Orange phone receiver — book a private session"
+                  className="relative z-10 w-full h-auto select-none pointer-events-none animate-float"
+                  draggable={false}
+                  loading="lazy"
+                />
+              </picture>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── PILLARS ──────────────────────────────────────────────────── */}
+      <section className="px-6 lg:px-12 py-20 border-b border-white/5">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-px bg-white/5 border border-white/5">
+          {c.pillars.map((b) => (
+            <div key={b.k} className={cn('bg-black p-8', isRTL && 'text-right')}>
+              <div className={cn(
+                'text-3xl text-ember mb-3',
+                isRTL ? 'font-arabic font-bold' : 'font-serif-display'
+              )}>
+                {b.k}
+              </div>
+              <p className={cn('text-sm text-white/50 font-light', isRTL ? 'leading-[2]' : 'leading-relaxed')}>
+                {b.v}
               </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        {/* Form */}
-        <motion.form
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
-          onSubmit={handleSubmit}
-          className="space-y-10"
-          noValidate
-        >
+      {/* ── FORM ─────────────────────────────────────────────────────── */}
+      <section className="px-6 lg:px-12 py-24 md:py-32">
+        <div className="max-w-3xl mx-auto">
 
-          {/* Name + Email */}
-          <div className="grid sm:grid-cols-2 gap-8">
-            <Field label={c.fields.fullName} error={errors.full_name} isRTL={isRTL}>
-              <input
-                type="text"
-                value={form.full_name}
-                onChange={(e) => set('full_name', e.target.value)}
-                placeholder={c.placeholders.fullName}
-                dir={isRTL ? 'rtl' : 'ltr'}
-                className={inputClass}
-              />
-            </Field>
-            <Field label={c.fields.email} error={errors.email} isRTL={isRTL}>
-              <input
-                type="email"
-                value={form.email}
-                onChange={(e) => set('email', e.target.value)}
-                placeholder={c.placeholders.email}
-                dir="ltr"
-                className={inputClass}
-              />
-            </Field>
+          {/* Intake header */}
+          <div className={cn('mb-12', isRTL && 'text-right')}>
+            <p className={cn(
+              'uppercase text-ember mb-4',
+              isRTL ? 'font-arabic tracking-normal text-sm' : 'text-xs tracking-[0.3em]'
+            )}>
+              {c.formLabel}
+            </p>
+            <h2 className={cn(
+              'text-3xl md:text-4xl tracking-tight',
+              isRTL ? 'font-arabic font-bold leading-[1.5]' : 'font-serif-display'
+            )}>
+              {c.formHeading}
+            </h2>
           </div>
 
-          {/* Startup stage */}
-          <Field label={c.fields.stage} error={errors.stage} isRTL={isRTL}>
-            <div className={cn('flex flex-wrap gap-2 mt-3', isRTL && 'justify-end')}>
-              {c.stages.map((s) => {
-                const active = form.stage === s.v;
-                return (
-                  <button
-                    key={s.v}
-                    type="button"
-                    onClick={() => set('stage', s.v)}
-                    className={cn(
-                      'px-4 py-2 border rounded-full text-xs transition-all duration-200',
-                      isRTL && 'font-arabic text-sm',
-                      active
-                        ? 'border-ember/50 bg-ember/8 text-white'
-                        : 'border-white/10 text-white/55 hover:border-white/25 hover:text-white/80'
-                    )}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
-            </div>
-          </Field>
+          {/* Success state */}
+          <AnimatePresence>
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className={cn(
+                  'mb-10 p-8 border border-ember/20 bg-ember/5',
+                  isRTL && 'text-right'
+                )}
+              >
+                <div className={cn('flex items-center gap-4 mb-4', isRTL && 'flex-row-reverse')}>
+                  <div className="size-10 bg-ember/15 border border-ember/25 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="size-5 text-ember" />
+                  </div>
+                  <h2 className={cn(
+                    'text-lg text-white font-medium',
+                    isRTL ? 'font-arabic' : 'font-serif-display'
+                  )}>
+                    {c.successHeading}
+                  </h2>
+                </div>
+                <p className={cn('text-white/55 font-light', isRTL && 'leading-[2]')}>
+                  {c.successBody}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* Biggest pain point */}
-          <Field
-            label={c.fields.painPoint}
-            hint={c.fields.painPointHint}
-            error={errors.pain_point}
-            isRTL={isRTL}
+          {/* Form */}
+          <motion.form
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+            onSubmit={handleSubmit}
+            className="space-y-10"
+            noValidate
           >
-            <textarea
-              rows={5}
-              value={form.pain_point}
-              onChange={(e) => set('pain_point', e.target.value)}
-              placeholder={c.placeholders.painPoint}
-              dir={isRTL ? 'rtl' : 'ltr'}
-              className={cn(inputClass, 'resize-none pt-3')}
-            />
-          </Field>
 
-          {/* Promo code */}
-          <Field label={c.promoCode} isRTL={isRTL}>
-            <div className="relative">
-              <Tag className="absolute start-0 top-1/2 -translate-y-1/2 size-3.5 text-white/20 pointer-events-none" />
-              <input
-                type="text"
-                value={promoInput}
-                onChange={(e) => {
-                  const v = e.target.value.toUpperCase();
-                  setPromoInput(v);
-                  setPromoResult(null);
-                  validatePromo(v);
-                }}
-                placeholder={c.promoPlaceholder}
-                dir="ltr"
-                className={cn(inputBase, 'ps-6 font-mono tracking-widest text-sm')}
+            {/* Name + Email */}
+            <div className="grid sm:grid-cols-2 gap-8">
+              <Field label={c.fields.fullName} error={errors.full_name} isRTL={isRTL}>
+                <input
+                  type="text"
+                  value={form.full_name}
+                  onChange={(e) => set('full_name', e.target.value)}
+                  placeholder={c.placeholders.fullName}
+                  dir={isRTL ? 'rtl' : 'ltr'}
+                  className={inputClass}
+                />
+              </Field>
+              <Field label={c.fields.email} error={errors.email} isRTL={isRTL}>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => set('email', e.target.value)}
+                  placeholder={c.placeholders.email}
+                  dir="ltr"
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+
+            {/* Startup stage */}
+            <Field label={c.fields.stage} error={errors.stage} isRTL={isRTL}>
+              <div className={cn('flex flex-wrap gap-2 mt-3', isRTL && 'justify-end')}>
+                {c.stages.map((s) => {
+                  const active = form.stage === s.v;
+                  return (
+                    <button
+                      key={s.v}
+                      type="button"
+                      onClick={() => set('stage', s.v)}
+                      className={cn(
+                        'px-4 py-2 border text-xs transition-all duration-200',
+                        isRTL && 'font-arabic text-sm',
+                        active
+                          ? 'border-ember bg-ember/10 text-ember'
+                          : 'border-white/15 text-white/50 hover:border-white/40 hover:text-white/80'
+                      )}
+                    >
+                      {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </Field>
+
+            {/* Biggest pain point */}
+            <Field
+              label={c.fields.painPoint}
+              hint={c.fields.painPointHint}
+              error={errors.pain_point}
+              isRTL={isRTL}
+            >
+              <textarea
+                rows={5}
+                value={form.pain_point}
+                onChange={(e) => set('pain_point', e.target.value)}
+                placeholder={c.placeholders.painPoint}
+                dir={isRTL ? 'rtl' : 'ltr'}
+                className={cn(inputClass, 'resize-none pt-3')}
               />
-            </div>
-            {promoValidating && (
-              <p className={cn('mt-2 text-xs text-white/35', isRTL && 'font-arabic text-right')}>
-                {c.promoValidating}
-              </p>
-            )}
-            {!promoValidating && promoResult?.valid && (
-              <p className={cn('mt-2 text-xs text-recovery flex items-center gap-1.5', isRTL && 'font-arabic flex-row-reverse text-right')}>
-                <CheckCircle2 className="size-3 shrink-0" />
-                {c.promoApplied}
-                {promoResult.title && ` — ${promoResult.title}`}
-                {promoResult.discountType === 'percentage' && ` (${promoResult.discountValue}%)`}
-                {promoResult.discountType === 'fixed_amount' && ` ($${promoResult.discountValue})`}
-                {promoResult.discountType === 'free' && ' (مجاني)'}
-              </p>
-            )}
-            {!promoValidating && promoInput && promoResult && !promoResult.valid && (
-              <p className={cn('mt-2 text-xs text-ember', isRTL && 'font-arabic text-right')}>
-                {c.promoInvalid}
-              </p>
-            )}
-          </Field>
+            </Field>
 
-          {/* Privacy notice */}
-          <p className={cn(
-            'text-[11px] text-white/30 border-t border-white/[0.06] pt-6',
-            isRTL ? 'font-arabic text-right text-sm leading-[2]' : 'tracking-wide'
-          )}>
-            {c.privacy}
-          </p>
+            {/* Promo code */}
+            <Field label={c.promoCode} isRTL={isRTL}>
+              <div className="relative">
+                <Tag className="absolute start-0 top-1/2 -translate-y-1/2 size-3.5 text-white/20 pointer-events-none" />
+                <input
+                  type="text"
+                  value={promoInput}
+                  onChange={(e) => {
+                    const v = e.target.value.toUpperCase();
+                    setPromoInput(v);
+                    setPromoResult(null);
+                    validatePromo(v);
+                  }}
+                  placeholder={c.promoPlaceholder}
+                  dir="ltr"
+                  className={cn(inputBase, 'ps-6 font-mono tracking-widest text-sm')}
+                />
+              </div>
+              {promoValidating && (
+                <p className={cn('mt-2 text-xs text-white/35', isRTL && 'font-arabic text-right')}>
+                  {c.promoValidating}
+                </p>
+              )}
+              {!promoValidating && promoResult?.valid && (
+                <p className={cn('mt-2 text-xs text-ember flex items-center gap-1.5', isRTL && 'font-arabic flex-row-reverse text-right')}>
+                  <CheckCircle2 className="size-3 shrink-0" />
+                  {c.promoApplied}
+                  {promoResult.title && ` — ${promoResult.title}`}
+                  {promoResult.discountType === 'percentage' && ` (${promoResult.discountValue}%)`}
+                  {promoResult.discountType === 'fixed_amount' && ` ($${promoResult.discountValue})`}
+                  {promoResult.discountType === 'free' && ' (مجاني)'}
+                </p>
+              )}
+              {!promoValidating && promoInput && promoResult && !promoResult.valid && (
+                <p className={cn('mt-2 text-xs text-ember', isRTL && 'font-arabic text-right')}>
+                  {c.promoInvalid}
+                </p>
+              )}
+            </Field>
 
-          {/* Server error */}
-          {serverError && (
-            <div className={cn(
-              'flex items-start gap-3 p-4 bg-red-950/30 border border-red-800/30 rounded-lg',
-              isRTL && 'flex-row-reverse text-right'
+            {/* Privacy notice */}
+            <p className={cn(
+              'text-[11px] text-white/30 border-t border-white/[0.06] pt-6',
+              isRTL ? 'font-arabic text-right text-sm leading-[2]' : 'tracking-wide'
             )}>
-              <AlertCircle className="size-4 text-red-400 shrink-0 mt-0.5" />
-              <p className={cn('text-sm text-red-300', isRTL && 'font-arabic')}>{serverError}</p>
+              {c.privacy}
+            </p>
+
+            {/* Server error */}
+            {serverError && (
+              <div className={cn(
+                'flex items-start gap-3 p-4 bg-red-950/30 border border-red-800/30',
+                isRTL && 'flex-row-reverse text-right'
+              )}>
+                <AlertCircle className="size-4 text-red-400 shrink-0 mt-0.5" />
+                <p className={cn('text-sm text-red-300', isRTL && 'font-arabic')}>{serverError}</p>
+              </div>
+            )}
+
+            {/* Submit */}
+            <div className={cn('pt-4', isRTL && 'text-right')}>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="group relative w-full md:w-auto inline-flex items-center justify-between gap-12 px-10 py-6 bg-ember text-black hover:bg-white transition-all duration-500 disabled:opacity-50"
+              >
+                <span className={cn(
+                  'text-sm uppercase font-semibold',
+                  isRTL ? 'font-arabic tracking-normal' : 'tracking-[0.25em]'
+                )}>
+                  {submitting ? c.submitting : c.submit}
+                </span>
+                {submitting ? (
+                  <span className="size-4 border-2 border-black/70 border-t-transparent animate-spin" />
+                ) : (
+                  <ArrowUpRight className={cn('size-5 transition-transform group-hover:rotate-45', isRTL && 'rotate-180')} />
+                )}
+              </button>
+              <p className={cn(
+                'mt-6 text-xs text-white/30 font-light max-w-md',
+                isRTL ? 'font-arabic text-right leading-[2]' : 'tracking-wide'
+              )}>
+                {c.submitDisclaimer}
+              </p>
             </div>
-          )}
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={submitting}
-            className={cn(
-              'w-full flex items-center justify-center gap-3 py-5 bg-ember hover:bg-ember-dim text-white font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-none',
-              isRTL ? 'font-arabic text-base' : 'text-[11px] tracking-[0.3em] uppercase'
-            )}
-          >
-            {submitting ? (
-              <>
-                <span className="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                {c.submitting}
-              </>
-            ) : (
-              c.submit
-            )}
-          </button>
+          </motion.form>
+        </div>
+      </section>
 
-        </motion.form>
-      </div>
+      {/* ── CLOSING ──────────────────────────────────────────────────── */}
+      <section className="border-t border-white/5 py-24 px-6 lg:px-12">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className={cn(
+            'text-2xl md:text-4xl italic text-white/40 leading-snug',
+            isRTL ? 'font-arabic font-bold leading-[1.8]' : 'font-serif-display'
+          )}>
+            {c.closingQuote}
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
