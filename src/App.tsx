@@ -64,6 +64,7 @@ const AdminEmail            = lazy(() => import("./pages/admin/AdminEmail"));
 const AdminInvoices         = lazy(() => import("./pages/admin/AdminInvoices"));
 const BookSession           = lazy(() => import("./pages/BookSession"));
 const FailKitRequest        = lazy(() => import("./pages/FailKitRequest"));
+const FailKit               = lazy(() => import("./pages/FailKit"));
 
 const queryClient = new QueryClient();
 
@@ -99,6 +100,7 @@ function AnimatedRoutes() {
         <Route path="/en/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
         <Route path="/en/book-session"          element={<PageTransition><BookSession /></PageTransition>} />
         <Route path="/en/fail-kit-request"      element={<PageTransition><FailKitRequest /></PageTransition>} />
+        <Route path="/en/fail-kit"              element={<PageTransition><FailKit /></PageTransition>} />
 
         {/* Arabic routes — same components, language derived from URL prefix */}
         <Route path="/ar"                 element={<PageTransition><Home /></PageTransition>} />
@@ -110,6 +112,7 @@ function AnimatedRoutes() {
         <Route path="/ar/tools/runway-simulator" element={<PageTransition><RunwaySimulator /></PageTransition>} />
         <Route path="/ar/book-session"          element={<PageTransition><BookSession /></PageTransition>} />
         <Route path="/ar/fail-kit-request"      element={<PageTransition><FailKitRequest /></PageTransition>} />
+        <Route path="/ar/fail-kit"              element={<PageTransition><FailKit /></PageTransition>} />
 
         {/* Preview route — remove after visual approval */}
         <Route path="/result-preview" element={<Suspense fallback={<LoadingFallback />}><ResultPreview /></Suspense>} />
